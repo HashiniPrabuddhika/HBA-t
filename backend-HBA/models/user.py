@@ -1,11 +1,10 @@
 from sqlalchemy import Column, Integer, String, ForeignKey
 from sqlalchemy.orm import relationship
 
-from config.database_config import Base
+from utils.database import Base
 
 
 class MRBSUser(Base):
-    """System user"""
     __tablename__ = "mrbs_users"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
@@ -16,7 +15,6 @@ class MRBSUser(Base):
 
 
 class MRBSModule(Base):
-    """Module or course"""
     __tablename__ = "mrbs_module"
 
     id = Column(Integer, primary_key=True, autoincrement=True)

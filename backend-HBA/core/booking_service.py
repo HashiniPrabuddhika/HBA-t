@@ -6,9 +6,11 @@ import time
 
 from models.booking import MRBSEntry
 from models.room import MRBSRoom
+from models.user import MRBSUser, MRBSModule
 from core.validation_service import ValidationService
 from utils.logger import get_logger
 from services.recommendation.hybrid_engine import HybridRecommendationEngine
+from config.recommendation_config import RecommendationConfig as rec_config
 
 logger = get_logger(__name__)
 
@@ -20,25 +22,20 @@ class BookingService:
         self.recommendation_engine = recommendation_engine
         self.validator = ValidationService()
         try:
-            self.recommendation_engine = HybridRecommendationEngine(db)
+            self.recommendation_engine = HybridRecommendationEngine(rec_config)
             logger.info("Recommendation engine initialized successfully")
         except Exception as e:
             logger.warning(f"Recommendation engine initialization failed: {e}")
             self.recommendation_engine = None
     
     def check_availability(self, room_name: str, date: str, start_time: str, 
-                          end_time: str) -> Dict[str, Any]:
+                      end_time: str) -> Dict[str, Any]:
         logger.info(f"Checking availability: {room_name} on {date} {start_time}-{end_time}")
         
         room = self.db.query(MRBSRoom).filter(MRBSRoom.room_name == room_name).first()
         
         if not room:
-            recommendations = self._get_recommendations(
-                room_name="any",  
-                date=date,
-                start_time=start_time,
-                end_time=end_time
-            )
+            recommendations = self._get_recommendations(room_name, date, start_time, end_time)
             return {
                 "status": "room_not_found",
                 "message": f"Room '{room_name}' not found.",
@@ -62,13 +59,14 @@ class BookingService:
             return {
                 "status": "unavailable",
                 "message": f"{room_name} is already booked for that time. Here are some available alternatives:",
-                "recommendations": recommendations
+                "recommendations": recommendations  
             }
         
         return {
             "status": "available",
             "message": f"{room_name} is available from {start_time} to {end_time} on {date}."
         }
+    
     
     def add_booking(self, room_name: str, name: str, date: str, start_time: str, 
                    end_time: str, created_by: str) -> Dict[str, Any]:
@@ -397,7 +395,7 @@ class BookingService:
     
     def _get_recommendations(self, room_name: str, date: str, start_time: str, 
                         end_time: str) -> List[Dict[str, Any]]:
-        """Get room recommendations from recommendation engine"""
+        
         if not self.recommendation_engine:
             logger.warning("Recommendation engine not available")
             return []
@@ -409,8 +407,9 @@ class BookingService:
             request_data = {
                 "user_id": "system",
                 "room_id": room_name,
-                "start_time": start_dt,
-                "end_time": end_dt,
+                "start_time": start_dt,  
+                "end_time": end_dt,      
+                "date": date,
                 "purpose": "meeting",
                 "capacity": 1,
                 "requirements": {"original_room": room_name}
@@ -423,3 +422,127 @@ class BookingService:
         except Exception as e:
             logger.error(f"Recommendation system error: {e}")
             return []
+        
+def fetch_user_profile_by_email(email: str, db: Session):
+    user = db.query(MRBSUser).filter(MRBSUser.email == email).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    return {
+        "id": user.id,
+        "name": user.name,
+        "email": user.email,
+        "role": user.role
+    }
+    
+
+def fetch_booking_by_id(booking_id: int, db: Session):
+    try:
+        booking = db.query(MRBSEntry).filter(MRBSEntry.id == booking_id).first()
+        if not booking:
+            raise HTTPException(status_code=404, detail="Booking not found")
+        return booking
+    except Exception as e:
+        print(f"Error fetching booking by ID: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+    
+def check_available_slotes(self, room_name: str, date: str, start_time: str, end_time: str, db: Session):
+    
+    self.validator.validate_future_datetime(date, "00:00", "check available slots")
+    
+    print(f"Checking availability for room: {room_name}")
+    print(f"Date: {date}, Start time: {start_time}, End time: {end_time}")
+
+    room = db.query(MRBSRoom).filter(MRBSRoom.room_name == room_name).first()
+    print(f"Queried room from DB: {room}")
+
+    # Convert to datetime objects first
+    date_obj = datetime.strptime(date, "%Y-%m-%d")
+    start_time = datetime.combine(date_obj, datetime.min.time()) + timedelta(hours=7)  # 7 AM
+    end_time = datetime.combine(date_obj, datetime.min.time()) + timedelta(hours=21)  # 9 PM
+
+
+    all_slots = []
+    current = start_time
+    while current < end_time:
+        slot_start = current
+        slot_end = current + timedelta(minutes=30)
+        all_slots.append((int(time.mktime(slot_start.timetuple())), int(time.mktime(slot_end.timetuple()))))
+        current = slot_end
+
+    # Step 3: Get all bookings for that day and room
+    day_start_ts = int(time.mktime(start_time.timetuple()))
+    day_end_ts = int(time.mktime(end_time.timetuple()))
+
+    bookings = db.query(MRBSEntry).filter(
+        MRBSEntry.room_id == room.id,
+        MRBSEntry.start_time < day_end_ts,
+        MRBSEntry.end_time > day_start_ts
+    ).all()
+
+    available_slots = []
+    current_time = datetime.now()
+    
+    for slot_start, slot_end in all_slots:
+        
+        slot_datetime = datetime.fromtimestamp(slot_start)
+        
+        # Skip past slots
+        if slot_datetime <= current_time:
+            continue
+        
+        conflict = any(
+            booking.start_time < slot_end and booking.end_time > slot_start
+            for booking in bookings
+        )
+        if not conflict:
+            available_slots.append({
+                "start_time": datetime.fromtimestamp(slot_start).strftime("%H:%M"),
+                "end_time": datetime.fromtimestamp(slot_end).strftime("%H:%M")
+            })
+            
+    if not available_slots:
+        recommendations = self._get_recommendations(room_name, date, start_time, end_time, db)
+        return {
+            "status": "no_slots_available",
+            "message": f"No available time slots found for {room_name} on {date}. Here are some available alternatives you might like:",
+            "room": room_name,
+            "date": date,
+            "available_slots": [],
+            "recommendations": recommendations
+        } 
+            
+    if not room:
+        print("Room not found!")
+        recommendations = self._get_recommendations(room_name, date, start_time, end_time, db)
+        raise HTTPException(
+            status_code=404, 
+            detail={
+                "error": "Room not found",
+                "message": f"Room '{room_name}' not found.",
+                "recommendations": recommendations
+            }
+        )
+    
+    return {"room": room_name, "date": date, "available_slots": available_slots}
+
+def fetch_moduleCodes_by_user_email(email: str, db: Session):
+    user = db.query(MRBSUser).filter(MRBSUser.email == email).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    modules = db.query(MRBSModule).filter(MRBSModule.lecture_id == user.id).all()
+    return [module.module_code for module in modules]
+
+def fetch_all_halls(db: Session):
+    halls = db.query(MRBSRoom).all()
+    return [hall.room_name for hall in halls]
+
+
+def fetch_halls_by_module_code(module_code: str, db: Session):
+    module = db.query(MRBSModule).filter(MRBSModule.module_code == module_code).first()
+    if not module:
+        return []  
+    halls = db.query(MRBSRoom).filter(MRBSRoom.capacity >= module.number_of_students).all()
+    
+    return [hall.room_name for hall in halls]

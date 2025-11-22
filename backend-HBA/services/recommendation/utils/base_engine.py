@@ -200,6 +200,8 @@ class BaseRecommendationEngine:
         start_timestamp = int(start_time.timestamp())
         end_timestamp = int(end_time.timestamp())
         
+        duration = (end_time - start_time).total_seconds() / 60 
+        
         original_room = self.db.query(MRBSRoom).filter(
             MRBSRoom.room_name == room_name,
             MRBSRoom.disabled == False
@@ -239,8 +241,11 @@ class BaseRecommendationEngine:
                         'capacity': room.capacity,
                         'start_time': start_time.isoformat(),
                         'end_time': end_time.isoformat(),
+                        'date': start_time.strftime('%Y-%m-%d'), 
+                        'duration_minutes': int(duration),
                         'confidence': score
-                    }
+                    },
+                    'data_source': 'base_engine'
                 })
                 
                 if len(recommendations) >= 5:

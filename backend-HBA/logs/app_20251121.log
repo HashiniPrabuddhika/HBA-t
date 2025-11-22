@@ -1,0 +1,8 @@
+2025-11-21 19:53:19 - services.llm.deepseek_llm - ERROR - DeepSeek API request failed: 401 Client Error: Unauthorized for url: https://openrouter.ai/api/v1/chat/completions
+2025-11-21 19:53:19 - api.routes.chat_routes - ERROR - LLM parsing failed: Failed to call DeepSeek API: 401 Client Error: Unauthorized for url: https://openrouter.ai/api/v1/chat/completions
+2025-11-21 20:17:03 - services.recommendation.base_engine - INFO - BaseRecommendationEngine initialized
+2025-11-21 20:19:01 - core.booking_service - INFO - Recommendation engine initialized successfully
+2025-11-21 20:21:25 - services.recommendation.base_engine - INFO - BaseRecommendationEngine initialized
+2025-11-21 20:21:59 - core.booking_service - INFO - Recommendation engine initialized successfully
+2025-11-21 20:21:59 - core.booking_service - INFO - Creating booking: LT1 on 2025-11-22 for prabuddhika_rph_e22@engug.ruh.ac.lk
+2025-11-21 20:22:03 - core.booking_service - INFO - Booking created successfully: ID 52

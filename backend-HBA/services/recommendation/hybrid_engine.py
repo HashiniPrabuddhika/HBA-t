@@ -74,6 +74,29 @@ class HybridRecommendationEngine(BaseRecommendationEngine):
             }
         
         logger.info(f"Engine mode: {self.mode}, Weights: {self.base_weights}")
+        
+    def _parse_datetime(self, time_value: Any) -> datetime:
+        """Parse datetime from various formats"""
+        try:
+            if isinstance(time_value, datetime):
+                return time_value
+            elif isinstance(time_value, str):
+                # ISO format
+                if 'T' in time_value:
+                    return datetime.fromisoformat(time_value.replace('Z', '+00:00'))
+                # Date + Time format
+                elif ' ' in time_value:
+                    return datetime.strptime(time_value, "%Y-%m-%d %H:%M")
+                # Time only
+                elif ':' in time_value:
+                    today = datetime.now().date()
+                    time_obj = datetime.strptime(time_value, "%H:%M").time()
+                    return datetime.combine(today, time_obj)
+            logger.error(f"Unable to parse datetime: {time_value}")
+            return datetime.now()
+        except Exception as e:
+            logger.error(f"DateTime parsing error: {e}")
+            return datetime.now()
     
     def get_recommendations(self, request_data: Dict[str, Any]) -> List[Dict[str, Any]]:
         """

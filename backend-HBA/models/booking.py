@@ -1,16 +1,15 @@
-from sqlalchemy import Column, Integer, String, Text, ForeignKey, TIMESTAMP, SmallInteger, func
+from sqlalchemy import Column, Integer, String, Text, ForeignKey, TIMESTAMP, SmallInteger, Boolean, func
 from sqlalchemy.orm import relationship
 
-from config.database_config import Base
+from utils.database import Base
 
 
 class MRBSRepeat(Base):
-    """Recurring booking template"""
     __tablename__ = "mrbs_repeat"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    start_time = Column(Integer, nullable=False, default=0)
-    end_time = Column(Integer, nullable=False, default=0)
+    start_time = Column(Integer, nullable=False, default=0)  # Unix timestamp
+    end_time = Column(Integer, nullable=False, default=0)  # Unix timestamp
     entry_type = Column(Integer, nullable=False, default=0)
     timestamp = Column(TIMESTAMP, nullable=False)
     create_by = Column(String(80), nullable=False, default="")
@@ -31,12 +30,11 @@ class MRBSRepeat(Base):
 
 
 class MRBSEntry(Base):
-    """Individual booking entry"""
     __tablename__ = "mrbs_entry"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    start_time = Column(Integer, nullable=False, default=0)
-    end_time = Column(Integer, nullable=False, default=0)
+    start_time = Column(Integer, nullable=False, default=0)  # Unix timestamp
+    end_time = Column(Integer, nullable=False, default=0)  # Unix timestamp
     entry_type = Column(Integer, nullable=False, default=0)
     repeat_id = Column(Integer, ForeignKey("mrbs_repeat.id", ondelete="CASCADE", onupdate="CASCADE"), nullable=True)
     room_id = Column(Integer, ForeignKey("mrbs_room.id", onupdate="CASCADE"), nullable=False, default=1)
@@ -60,18 +58,19 @@ class MRBSEntry(Base):
 
 
 class MRBSSwapRequest(Base):
-    """Booking swap request"""
     __tablename__ = "swap_requests"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     requested_by = Column(Integer, ForeignKey("mrbs_users.id", onupdate="CASCADE", ondelete="CASCADE"), nullable=False)
     requested_booking_id = Column(Integer, ForeignKey("mrbs_entry.id", onupdate="CASCADE", ondelete="CASCADE"), nullable=False)
     offered_booking_id = Column(Integer, ForeignKey("mrbs_entry.id", onupdate="CASCADE", ondelete="SET NULL"), nullable=True)
-    status = Column(String(20), nullable=False, default="pending")
+    status = Column(String(20), nullable=False, default="pending")  # 'pending', 'approved', 'rejected'
     timestamp = Column("created_at", TIMESTAMP, nullable=False, server_default=func.now())
     offered_by = Column(Integer, ForeignKey("mrbs_users.id", onupdate="CASCADE", ondelete="SET NULL"), nullable=True)
 
+    # Relationships
     requester = relationship("MRBSUser", foreign_keys=[requested_by])
     offerer = relationship("MRBSUser", foreign_keys=[offered_by])
     requested_booking = relationship("MRBSEntry", foreign_keys=[requested_booking_id])
     offered_booking = relationship("MRBSEntry", foreign_keys=[offered_booking_id])
+

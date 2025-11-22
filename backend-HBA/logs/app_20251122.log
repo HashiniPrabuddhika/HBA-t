@@ -1,0 +1,46 @@
+2025-11-22 05:00:56 - services.recommendation.base_engine - INFO - BaseRecommendationEngine initialized
+2025-11-22 05:01:49 - core.booking_service - INFO - Recommendation engine initialized successfully
+2025-11-22 05:01:49 - core.booking_service - INFO - Creating booking: LT1 on 2025-11-23 for prabuddhika_rph_e22@engug.ruh.ac.lk
+2025-11-22 05:01:51 - core.booking_service - INFO - Booking created successfully: ID 53
+2025-11-22 05:05:23 - services.recommendation.base_engine - INFO - BaseRecommendationEngine initialized
+2025-11-22 05:05:45 - core.booking_service - INFO - Recommendation engine initialized successfully
+2025-11-22 05:05:45 - core.booking_service - INFO - Creating booking: LT1 on 2025-11-23 for prabuddhika_rph_e22@engug.ruh.ac.lk
+2025-11-22 05:05:45 - services.recommendation.base_engine - INFO - Generating base recommendations for user system
+2025-11-22 05:05:45 - services.recommendation.base_engine - INFO - Generated 5 base recommendations
+2025-11-22 05:05:45 - core.booking_service - INFO - Generated 5 recommendations
+2025-11-22 05:41:54 - services.recommendation.base_engine - INFO - BaseRecommendationEngine initialized
+2025-11-22 05:42:30 - core.booking_service - INFO - Recommendation engine initialized successfully
+2025-11-22 05:42:30 - core.booking_service - INFO - Creating booking: LT1 on 2025-11-23 for prabuddhika_rph_e22@engug.ruh.ac.lk
+2025-11-22 05:42:30 - services.recommendation.base_engine - INFO - Generating base recommendations for user system
+2025-11-22 05:42:30 - services.recommendation.base_engine - ERROR - Error getting alternative time recommendations: 'str' object cannot be interpreted as an integer
+2025-11-22 05:42:30 - services.recommendation.base_engine - ERROR - Error getting alternative room recommendations: 'str' object cannot be interpreted as an integer
+2025-11-22 05:42:30 - services.recommendation.base_engine - INFO - Generated 1 base recommendations
+2025-11-22 05:42:30 - core.booking_service - INFO - Generated 1 recommendations
+2025-11-22 05:48:39 - services.llm.deepseek_llm - ERROR - DeepSeek API request failed: 429 Client Error: Too Many Requests for url: https://openrouter.ai/api/v1/chat/completions
+2025-11-22 05:48:39 - core.recurrence_service - ERROR - LLM call failed: Failed to call DeepSeek API: 429 Client Error: Too Many Requests for url: https://openrouter.ai/api/v1/chat/completions
+2025-11-22 05:48:43 - services.llm.deepseek_llm - ERROR - DeepSeek API request failed: 429 Client Error: Too Many Requests for url: https://openrouter.ai/api/v1/chat/completions
+2025-11-22 05:48:43 - api.routes.chat_routes - ERROR - LLM parsing failed: Failed to call DeepSeek API: 429 Client Error: Too Many Requests for url: https://openrouter.ai/api/v1/chat/completions
+2025-11-22 05:49:18 - services.recommendation.base_engine - INFO - BaseRecommendationEngine initialized
+2025-11-22 05:49:35 - core.booking_service - INFO - Recommendation engine initialized successfully
+2025-11-22 05:49:35 - core.booking_service - INFO - Creating booking: LT1 on 2025-11-23 for prabuddhika_rph_e22@engug.ruh.ac.lk
+2025-11-22 05:49:35 - services.recommendation.base_engine - INFO - Generating base recommendations for user system
+2025-11-22 05:49:35 - services.recommendation.base_engine - ERROR - Error getting alternative time recommendations: 'int' object has no attribute 'replace'
+2025-11-22 05:49:35 - services.recommendation.base_engine - ERROR - Error getting alternative room recommendations: 'int' object has no attribute 'replace'
+2025-11-22 05:49:35 - services.recommendation.base_engine - INFO - Generated 1 base recommendations
+2025-11-22 05:49:35 - core.booking_service - INFO - Generated 1 recommendations
+2025-11-22 06:09:44 - services.recommendation.base_engine - INFO - BaseRecommendationEngine initialized
+2025-11-22 06:10:29 - core.booking_service - INFO - Recommendation engine initialized successfully
+2025-11-22 06:10:29 - core.booking_service - INFO - Creating booking: LT1 on 2025-11-23 for prabuddhika_rph_e22@engug.ruh.ac.lk
+2025-11-22 06:10:30 - services.recommendation.base_engine - INFO - Generating base recommendations for user system
+2025-11-22 06:10:30 - services.recommendation.base_engine - ERROR - Error getting alternative time recommendations: type object 'RecommendationConfig' has no attribute 'query'
+2025-11-22 06:10:30 - services.recommendation.base_engine - ERROR - Error getting alternative room recommendations: type object 'RecommendationConfig' has no attribute 'query'
+2025-11-22 06:10:30 - services.recommendation.base_engine - INFO - Generated 1 base recommendations
+2025-11-22 06:10:30 - core.booking_service - INFO - Generated 1 recommendations
+2025-11-22 09:58:42 - services.recommendation.base_engine - INFO - BaseRecommendationEngine initialized
+2025-11-22 09:59:36 - core.booking_service - INFO - Recommendation engine initialized successfully
+2025-11-22 09:59:36 - core.booking_service - INFO - Creating booking: LT1 on 2025-11-23 for prabuddhika_rph_e22@engug.ruh.ac.lk
+2025-11-22 09:59:36 - services.recommendation.base_engine - INFO - Generating base recommendations for user system
+2025-11-22 09:59:36 - services.recommendation.base_engine - ERROR - Error getting alternative time recommendations: type object 'RecommendationConfig' has no attribute 'query'
+2025-11-22 09:59:36 - services.recommendation.base_engine - ERROR - Error getting alternative room recommendations: type object 'RecommendationConfig' has no attribute 'query'
+2025-11-22 09:59:36 - services.recommendation.base_engine - INFO - Generated 1 base recommendations
+2025-11-22 09:59:36 - core.booking_service - INFO - Generated 1 recommendations

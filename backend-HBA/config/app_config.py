@@ -22,7 +22,7 @@ class Settings(BaseSettings):
     LLM_TEMPERATURE: float = 0.2
     
     CORS_ORIGINS: List[str] = Field(
-        default_factory=lambda: ["http://localhost:3000", "http://127.0.0.1:3000"]
+        default_factory=lambda: ["http://localhost:3000","http://127.0.0.1:3000"]
     )
 
     @field_validator("CORS_ORIGINS", mode="before")

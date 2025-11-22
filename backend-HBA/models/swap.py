@@ -5,69 +5,23 @@ from utils.database import Base
 
 
 class MRBSSwapRequest(Base):
-    """Booking swap request model"""
-    
     __tablename__ = "swap_requests"
-    
+
     id = Column(Integer, primary_key=True, autoincrement=True)
-    requested_by = Column(
-        Integer,
-        ForeignKey("mrbs_users.id", onupdate="CASCADE", ondelete="CASCADE"),
-        nullable=False,
-        index=True
-    )
-    requested_booking_id = Column(
-        Integer,
-        ForeignKey("mrbs_entry.id", onupdate="CASCADE", ondelete="CASCADE"),
-        nullable=False,
-        index=True
-    )
-    offered_booking_id = Column(
-        Integer,
-        ForeignKey("mrbs_entry.id", onupdate="CASCADE", ondelete="SET NULL"),
-        nullable=True,
-        index=True
-    )
-    status = Column(
-        String(20),
-        nullable=False,
-        default="pending",
-        index=True
-    )
-    timestamp = Column(
-        "created_at",
-        TIMESTAMP,
-        nullable=False,
-        server_default=func.now()
-    )
-    offered_by = Column(
-        Integer,
-        ForeignKey("mrbs_users.id", onupdate="CASCADE", ondelete="SET NULL"),
-        nullable=True,
-        index=True
-    )
-    response_timestamp = Column(TIMESTAMP, nullable=True)
-    notes = Column(String(500), nullable=True)
-    
-    requester = relationship(
-        "MRBSUser",
-        foreign_keys=[requested_by],
-        back_populates="requested_swaps"
-    )
-    offerer = relationship(
-        "MRBSUser",
-        foreign_keys=[offered_by],
-        back_populates="offered_swaps"
-    )
-    requested_booking = relationship(
-        "MRBSEntry",
-        foreign_keys=[requested_booking_id]
-    )
-    offered_booking = relationship(
-        "MRBSEntry",
-        foreign_keys=[offered_booking_id]
-    )
-    
+    requested_by = Column(Integer, ForeignKey("mrbs_users.id", onupdate="CASCADE", ondelete="CASCADE"), nullable=False)
+    requested_booking_id = Column(Integer, ForeignKey("mrbs_entry.id", onupdate="CASCADE", ondelete="CASCADE"), nullable=False)
+    offered_booking_id = Column(Integer, ForeignKey("mrbs_entry.id", onupdate="CASCADE", ondelete="SET NULL"), nullable=True)
+    status = Column(String(20), nullable=False, default="pending")  # 'pending', 'approved', 'rejected'
+    timestamp = Column("created_at", TIMESTAMP, nullable=False, server_default=func.now())
+    offered_by = Column(Integer, ForeignKey("mrbs_users.id", onupdate="CASCADE", ondelete="SET NULL"), nullable=True)
+
+    # Relationships
+    requester = relationship("MRBSUser", foreign_keys=[requested_by])
+    offerer = relationship("MRBSUser", foreign_keys=[offered_by])
+    requested_booking = relationship("MRBSEntry", foreign_keys=[requested_booking_id])
+    offered_booking = relationship("MRBSEntry", foreign_keys=[offered_booking_id])
+
+ 
     def __repr__(self):
         return f"<MRBSSwapRequest(id={self.id}, status='{self.status}', requested_by={self.requested_by})>"
     

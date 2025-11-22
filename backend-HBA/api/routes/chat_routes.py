@@ -121,7 +121,7 @@ async def ask_llm(
             }
             
             # Pass db session to extract_entities
-            extracted = extract_entities(question, db)
+            extracted = extract_entities(question)
             if "room_name" in extracted:
                 params["parameters"]["room_name"] = extracted["room_name"]
             
@@ -206,7 +206,7 @@ Respond in **only JSON format**, without explanations.
                 }
             
             # Pass db session to extract_entities
-            extracted = extract_entities(question, db)
+            extracted = extract_entities(question)
             for key, value in extracted.items():
                 if key not in params or not params[key]:
                     params[key] = value
@@ -273,7 +273,7 @@ Respond in **only JSON format**, without explanations.
             date=params["date"],
             start_time=params["start_time"],
             end_time=params["end_time"],
-            db=db,
+            
         )
     elif action == "add_booking":
         return booking_service.add_booking(
@@ -283,7 +283,6 @@ Respond in **only JSON format**, without explanations.
             start_time=params["start_time"],
             end_time=params["end_time"],
             created_by=user_email, 
-            db=db,
         )
     elif action == "add_recurring_booking":
         recurrence_service = RecurrenceService(llm)
@@ -294,7 +293,7 @@ Respond in **only JSON format**, without explanations.
             date=params["date"],
             start_time=params["start_time"],
             end_time=params["end_time"],
-            db=db,
+            
         )
     elif action == "cancel_booking":
         return booking_service.cancel_booking(
@@ -303,7 +302,7 @@ Respond in **only JSON format**, without explanations.
             start_time=params["start_time"],
             end_time=params["end_time"],
             user_email=user_email,  
-            db=db,
+           
         )
     elif action == "update_booking":
         if params.get("new_date") and params.get("new_start_time"):
@@ -334,7 +333,7 @@ Respond in **only JSON format**, without explanations.
             new_start_time=params.get("new_start_time"),
             new_end_time=params.get("new_end_time"),
             modified_by=user_email, 
-            db=db,
+            
         )
     return {"status": "error", "message": "Unhandled action."}
 
