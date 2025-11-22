@@ -10,10 +10,11 @@ from models.user import MRBSUser, MRBSModule
 from core.validation_service import ValidationService
 from utils.logger import get_logger
 from services.recommendation.hybrid_engine import HybridRecommendationEngine
-from config.recommendation_config import RecommendationConfig as rec_config
+from config.recommendation_config import RecommendationConfig 
 
 logger = get_logger(__name__)
 
+rec_config = RecommendationConfig()
 
 class BookingService:
     
@@ -546,3 +547,4 @@ def fetch_halls_by_module_code(module_code: str, db: Session):
     halls = db.query(MRBSRoom).filter(MRBSRoom.capacity >= module.number_of_students).all()
     
     return [hall.room_name for hall in halls]
+

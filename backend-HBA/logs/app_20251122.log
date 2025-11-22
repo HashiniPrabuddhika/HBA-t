@@ -44,3 +44,71 @@
 2025-11-22 09:59:36 - services.recommendation.base_engine - ERROR - Error getting alternative room recommendations: type object 'RecommendationConfig' has no attribute 'query'
 2025-11-22 09:59:36 - services.recommendation.base_engine - INFO - Generated 1 base recommendations
 2025-11-22 09:59:36 - core.booking_service - INFO - Generated 1 recommendations
+2025-11-22 11:19:51 - services.recommendation.base_engine - INFO - BaseRecommendationEngine initialized
+2025-11-22 11:20:57 - core.booking_service - INFO - Recommendation engine initialized successfully
+2025-11-22 11:20:57 - core.booking_service - INFO - Creating booking: LT1 on 2025-11-23 for prabuddhika_rph_e22@engug.ruh.ac.lk
+2025-11-22 11:20:57 - services.recommendation.base_engine - INFO - Generating base recommendations for user system
+2025-11-22 11:20:57 - services.recommendation.base_engine - ERROR - Error getting alternative time recommendations: 'str' object cannot be interpreted as an integer
+2025-11-22 11:20:57 - services.recommendation.base_engine - ERROR - Error getting alternative room recommendations: 'str' object cannot be interpreted as an integer
+2025-11-22 11:20:57 - services.recommendation.base_engine - INFO - Generated 1 base recommendations
+2025-11-22 11:20:57 - core.booking_service - INFO - Generated 1 recommendations
+2025-11-22 11:46:19 - services.recommendation.base_engine - INFO - BaseRecommendationEngine initialized
+2025-11-22 11:46:59 - core.booking_service - INFO - Creating booking: LT1 on 2025-11-23 for prabuddhika_rph_e22@engug.ruh.ac.lk
+2025-11-22 11:46:59 - core.booking_service - INFO - Getting recommendations for unavailable room LT1
+2025-11-22 11:46:59 - services.recommendation.base_engine - INFO - Generating base recommendations for user system
+2025-11-22 11:46:59 - services.recommendation.base_engine - ERROR - Error getting alternative time recommendations: type object 'RecommendationConfig' has no attribute 'query'
+2025-11-22 11:46:59 - services.recommendation.base_engine - ERROR - Error getting alternative room recommendations: type object 'RecommendationConfig' has no attribute 'query'
+2025-11-22 11:46:59 - services.recommendation.base_engine - INFO - Generated 1 base recommendations
+2025-11-22 11:46:59 - core.booking_service - INFO - Generated 1 recommendations
+2025-11-22 11:51:17 - services.recommendation.base_engine - INFO - BaseRecommendationEngine initialized
+2025-11-22 11:51:45 - core.booking_service - INFO - Recommendation engine initialized successfully
+2025-11-22 11:51:45 - core.booking_service - INFO - Creating booking: LT1 on 2025-11-23 for prabuddhika_rph_e22@engug.ruh.ac.lk
+2025-11-22 11:51:46 - services.recommendation.base_engine - INFO - Generating base recommendations for user system
+2025-11-22 11:51:46 - services.recommendation.base_engine - ERROR - Error getting alternative time recommendations: type object 'RecommendationConfig' has no attribute 'query'
+2025-11-22 11:51:46 - services.recommendation.base_engine - ERROR - Error getting alternative room recommendations: type object 'RecommendationConfig' has no attribute 'query'
+2025-11-22 11:51:46 - services.recommendation.base_engine - INFO - Generated 1 base recommendations
+2025-11-22 11:51:46 - core.booking_service - INFO - Generated 1 recommendations
+2025-11-22 11:53:34 - services.recommendation.base_engine - INFO - BaseRecommendationEngine initialized
+2025-11-22 11:54:01 - core.booking_service - INFO - Creating booking: LT1 on 2025-11-23 for prabuddhika_rph_e22@engug.ruh.ac.lk
+2025-11-22 11:54:01 - core.booking_service - INFO - Getting recommendations for unavailable room LT1
+2025-11-22 11:54:01 - services.recommendation.base_engine - INFO - Generating base recommendations for user system
+2025-11-22 11:54:01 - services.recommendation.base_engine - ERROR - Error getting alternative time recommendations: type object 'RecommendationConfig' has no attribute 'query'
+2025-11-22 11:54:01 - services.recommendation.base_engine - ERROR - Error getting alternative room recommendations: type object 'RecommendationConfig' has no attribute 'query'
+2025-11-22 11:54:01 - services.recommendation.base_engine - INFO - Generated 1 base recommendations
+2025-11-22 11:54:01 - core.booking_service - INFO - Generated 1 recommendations
+2025-11-22 12:12:56 - services.recommendation.base_engine - INFO - BaseRecommendationEngine initialized
+2025-11-22 12:13:28 - core.booking_service - INFO - Recommendation engine initialized successfully
+2025-11-22 12:13:28 - core.booking_service - INFO - Creating booking: LT1 on 2025-11-23 for prabuddhika_rph_e22@engug.ruh.ac.lk
+2025-11-22 12:13:28 - services.recommendation.base_engine - INFO - Generating base recommendations for user system
+2025-11-22 12:13:28 - services.recommendation.base_engine - ERROR - Error getting alternative time recommendations: type object 'RecommendationConfig' has no attribute 'query'
+2025-11-22 12:13:28 - services.recommendation.base_engine - ERROR - Error getting alternative room recommendations: type object 'RecommendationConfig' has no attribute 'query'
+2025-11-22 12:13:28 - services.recommendation.base_engine - INFO - Generated 1 base recommendations
+2025-11-22 12:13:28 - core.booking_service - INFO - Generated 1 recommendations
+2025-11-22 13:34:59 - services.recommendation.base_engine - INFO - BaseRecommendationEngine initialized
+2025-11-22 13:35:45 - core.booking_service - INFO - Recommendation engine initialized successfully
+2025-11-22 13:35:45 - core.booking_service - INFO - Creating booking: LT1 on 2025-11-23 for prabuddhika_rph_e22@engug.ruh.ac.lk
+2025-11-22 13:35:45 - services.recommendation.base_engine - INFO - Generating base recommendations for user system
+2025-11-22 13:35:45 - services.recommendation.base_engine - ERROR - Error getting alternative time recommendations: type object 'RecommendationConfig' has no attribute 'query'
+2025-11-22 13:35:45 - services.recommendation.base_engine - ERROR - Error getting alternative room recommendations: type object 'RecommendationConfig' has no attribute 'query'
+2025-11-22 13:35:45 - services.recommendation.base_engine - INFO - Generated 1 base recommendations
+2025-11-22 13:35:45 - core.booking_service - INFO - Generated 1 recommendations
+2025-11-22 17:05:02 - core.booking_service - INFO - Recommendation engine initialized successfully
+2025-11-22 17:05:02 - core.booking_service - INFO - Creating booking: LT1 on 2025-11-23 for prabuddhika_rph_e22@engug.ruh.ac.lk
+2025-11-22 17:05:03 - core.booking_service - INFO - Generated 3 recommendations
+2025-11-22 17:15:58 - core.booking_service - INFO - Recommendation engine initialized successfully
+2025-11-22 17:15:58 - core.booking_service - INFO - Creating booking: LT1 on 2025-11-23 for prabuddhika_rph_e22@engug.ruh.ac.lk
+2025-11-22 17:15:58 - core.booking_service - INFO - Generated 3 recommendations
+2025-11-22 18:00:32 - core.booking_service - WARNING - Recommendation engine initialization failed: name 'rec_config' is not defined
+2025-11-22 18:00:32 - core.booking_service - INFO - Creating booking: LT1 on 2025-11-23 for prabuddhika_rph_e22@engug.ruh.ac.lk
+2025-11-22 18:00:33 - core.booking_service - WARNING - Recommendation engine not available
+2025-11-22 18:06:30 - core.booking_service - INFO - Recommendation engine initialized successfully
+2025-11-22 18:06:30 - core.booking_service - INFO - Creating booking: LT1 on 2025-11-23 for prabuddhika_rph_e22@engug.ruh.ac.lk
+2025-11-22 18:06:30 - core.booking_service - INFO - Generated 3 recommendations
+2025-11-22 18:09:57 - core.booking_service - INFO - Recommendation engine initialized successfully
+2025-11-22 18:09:57 - core.booking_service - INFO - Creating booking: LT1 on 2025-11-23 for prabuddhika_rph_e22@engug.ruh.ac.lk
+2025-11-22 18:09:57 - core.booking_service - INFO - Generated 3 recommendations
+2025-11-22 18:23:05 - core.booking_service - INFO - Recommendation engine initialized successfully
+2025-11-22 18:23:05 - core.booking_service - INFO - Creating booking: LT1 on 2025-11-23 for prabuddhika_rph_e22@engug.ruh.ac.lk
+2025-11-22 18:23:05 - core.booking_service - INFO - Generated 3 recommendations
+2025-11-22 18:34:27 - core.booking_service - INFO - Recommendation engine initialized successfully
+2025-11-22 18:34:27 - core.booking_service - INFO - Checking availability: LT1 on 2025-11-24 08:00-09:00

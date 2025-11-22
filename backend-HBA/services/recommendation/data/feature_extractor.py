@@ -9,7 +9,6 @@ import re
 logger = logging.getLogger(__name__)
 
 class FeatureExtractor:
-    """Extract and process features from booking and user data for recommendations"""
     
     def __init__(self):
         self.user_features_cache = {}
@@ -20,7 +19,7 @@ class FeatureExtractor:
         logger.info("FeatureExtractor initialized")
     
     def extract_user_features(self, user_data: Dict[str, Any], booking_history: List[Dict[str, Any]] = None) -> Dict[str, Any]:
-        """Extract comprehensive user features"""
+       
         try:
             user_id = user_data.get('user_id') or user_data.get('id')
             if user_id in self.user_features_cache:
