@@ -28,6 +28,11 @@ def create_swap(
 ):
     logger.info(f"Creating swap request from {payload.requested_by_email}")
     
+    if payload.requested_by_email != user_email:
+        raise HTTPException(
+            status_code=403, 
+            detail="You can only create swap requests for yourself"
+        )
     user = db.query(MRBSUser).filter(MRBSUser.email == payload.requested_by_email).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
@@ -83,6 +88,16 @@ def respond_swap(
     if not swap:
         raise HTTPException(status_code=404, detail="Swap request not found")
     
+    user = db.query(MRBSUser).filter(MRBSUser.email == user_email).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    if user.id not in [swap.requested_by, swap.offered_by]:
+        raise HTTPException(
+            status_code=403, 
+            detail="You are not authorized to respond to this swap request"
+        )
+        
     requested_booking = db.query(MRBSEntry).filter(MRBSEntry.id == swap.requested_booking_id).first()
     offered_booking = db.query(MRBSEntry).filter(MRBSEntry.id == swap.offered_booking_id).first()
     
@@ -148,32 +163,108 @@ def pending_swaps(
     }
 
 
-@router.get("/swap/all/{user_id}")
+@router.get("/swap/get_all_requests")
 def get_all_swaps(
-    user_id: int,
     db: Session = Depends(get_db),
     user_email: str = Depends(get_current_user_email)
 ):
     """Get all swap requests for a user"""
-    logger.info(f"Fetching all swaps for user {user_id}")
+    logger.info(f"Fetching all swaps for user {user_email}")
     
-    swaps = db.query(MRBSSwapRequest).filter(
-        (MRBSSwapRequest.requested_by == user_id) | (MRBSSwapRequest.offered_by == user_id)
-    ).all()
-    
-    return {
-        "all_swaps": [
-            {
-                "swap_id": s.id,
-                "requested_by": s.requested_by,
-                "requested_booking_id": s.requested_booking_id,
-                "offered_booking_id": s.offered_booking_id,
-                "status": s.status
-            }
-            for s in swaps
-        ]
-    }
+    try:
+        swaps = (
+            db.query(MRBSSwapRequest)
+            .options(
+                joinedload(MRBSSwapRequest.requester),
+                joinedload(MRBSSwapRequest.offerer),
+                joinedload(MRBSSwapRequest.requested_booking).joinedload(MRBSEntry.room),
+                joinedload(MRBSSwapRequest.offered_booking).joinedload(MRBSEntry.room)
+            )
+            .filter(MRBSSwapRequest.status == "pending")
+            .all()
+        )
 
+
+        def format_time(ts: int):
+                try:
+                    return datetime.fromtimestamp(ts).strftime("%Y-%m-%d %H:%M")
+                except Exception:
+                    return None
+
+        result = []
+        for swap in swaps:
+                # 🧩 Requested booking’s module code
+                requested_module = (
+                    db.query(MRBSModule)
+                    .filter(MRBSModule.module_code == swap.requested_booking.name)
+                    .first()
+                    if swap.requested_booking else None
+                )
+
+                # 🧩 Offered booking’s module code
+                offered_module = (
+                    db.query(MRBSModule)
+                    .filter(MRBSModule.module_code == swap.offered_booking.name)
+                    .first()
+                    if swap.offered_booking else None
+                )
+
+                # 🕒 Convert Unix timestamps
+                requested_start = format_time(swap.requested_booking.start_time) if swap.requested_booking else None
+                requested_end = format_time(swap.requested_booking.end_time) if swap.requested_booking else None
+                offered_start = format_time(swap.offered_booking.start_time) if swap.offered_booking else None
+                offered_end = format_time(swap.offered_booking.end_time) if swap.offered_booking else None
+
+                result.append({
+                    "id": swap.id,
+                    "status": swap.status,
+                    "created_at": swap.timestamp,
+
+                    # 👥 Requester & Offerer Info
+                    "requested_by": swap.requested_by,
+                    "offered_by": swap.offered_by,
+                    "requester_name": swap.requester.name if swap.requester else None,
+                    "offerer_name": swap.offerer.name if swap.offerer else None,
+                    "requester_email": swap.requester.email if swap.requester else None,
+                    "offerer_email": swap.offerer.email if swap.offerer else None,
+
+                    # 📘 Module Info
+                    "requested_module_code": requested_module.module_code if requested_module else None,
+                    "offered_module_code": offered_module.module_code if offered_module else None,
+
+                    # 🕒 Time Slot Info
+                    "requested_time_slot": f"{requested_start} - {requested_end}" if requested_start and requested_end else None,
+                    "offered_time_slot": f"{offered_start} - {offered_end}" if offered_start and offered_end else None,
+
+                    # 🏫 Room Info
+                    "requested_room_name": swap.requested_booking.room.room_name if swap.requested_booking and swap.requested_booking.room else None,
+                    "offered_room_name": swap.offered_booking.room.room_name if swap.offered_booking and swap.offered_booking.room else None,
+
+                    # 📨 Readable Summary Message
+                    "message": (
+                        f"Swap request from {swap.requester.name if swap.requester else 'Unknown'} "
+                        f"({swap.requester.email if swap.requester else 'N/A'}) "
+                        f"for booking {swap.requested_booking_id} "
+                        f"({requested_module.module_code if requested_module else 'N/A'}) "
+                        f"in {swap.requested_booking.room.room_name if swap.requested_booking and swap.requested_booking.room else 'Unknown room'} "
+                        f"({requested_start} - {requested_end})"
+                        + (
+                            f" ↔ offered booking {swap.offered_booking_id} "
+                            f"({offered_module.module_code if offered_module else 'N/A'}) "
+                            f"in {swap.offered_booking.room.room_name if swap.offered_booking and swap.offered_booking.room else 'Unknown room'} "
+                            f"({offered_start} - {offered_end}) "
+                            f"by {swap.offerer.name if swap.offerer else 'Unknown'} "
+                            f"({swap.offerer.email if swap.offerer else 'N/A'})"
+                            if swap.offered_booking else ""
+                        )
+                    )
+                })
+
+        return result   
+    except Exception as e:
+        logger.error(f"Error fetching swap requests: {e}")
+        raise HTTPException(status_code=500, detail=f"Error fetching swap requests: {str(e)}")
+        
 
 @router.get("/swap/requests")
 def get_all_requests(

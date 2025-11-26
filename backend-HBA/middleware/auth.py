@@ -85,6 +85,7 @@ def authenticate_token(authorization: Optional[str] = Header(None)):
         raise HTTPException(status_code=401, detail="Token verification failed")
 
 def get_current_user_email(authorization: Optional[str] = Header(None)) -> str:
+    
     user_data = authenticate_token(authorization)
     return user_data["email"]
 

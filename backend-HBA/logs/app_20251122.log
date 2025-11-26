@@ -112,3 +112,41 @@
 2025-11-22 18:23:05 - core.booking_service - INFO - Generated 3 recommendations
 2025-11-22 18:34:27 - core.booking_service - INFO - Recommendation engine initialized successfully
 2025-11-22 18:34:27 - core.booking_service - INFO - Checking availability: LT1 on 2025-11-24 08:00-09:00
+2025-11-22 19:29:05 - services.llm.deepseek_llm - ERROR - DeepSeek API request failed: 429 Client Error: Too Many Requests for url: https://openrouter.ai/api/v1/chat/completions
+2025-11-22 19:29:05 - api.routes.chat_routes - ERROR - LLM parsing failed: Failed to call DeepSeek API: 429 Client Error: Too Many Requests for url: https://openrouter.ai/api/v1/chat/completions
+2025-11-22 19:29:18 - services.llm.deepseek_llm - ERROR - DeepSeek API request failed: 429 Client Error: Too Many Requests for url: https://openrouter.ai/api/v1/chat/completions
+2025-11-22 19:29:18 - core.recurrence_service - ERROR - LLM call failed: Failed to call DeepSeek API: 429 Client Error: Too Many Requests for url: https://openrouter.ai/api/v1/chat/completions
+2025-11-22 19:29:22 - services.llm.deepseek_llm - ERROR - DeepSeek API request failed: 429 Client Error: Too Many Requests for url: https://openrouter.ai/api/v1/chat/completions
+2025-11-22 19:29:22 - api.routes.chat_routes - ERROR - LLM parsing failed: Failed to call DeepSeek API: 429 Client Error: Too Many Requests for url: https://openrouter.ai/api/v1/chat/completions
+2025-11-22 19:30:22 - services.llm.deepseek_llm - ERROR - DeepSeek API request failed: 429 Client Error: Too Many Requests for url: https://openrouter.ai/api/v1/chat/completions
+2025-11-22 19:30:22 - core.recurrence_service - ERROR - LLM call failed: Failed to call DeepSeek API: 429 Client Error: Too Many Requests for url: https://openrouter.ai/api/v1/chat/completions
+2025-11-22 19:30:25 - services.llm.deepseek_llm - ERROR - DeepSeek API request failed: 429 Client Error: Too Many Requests for url: https://openrouter.ai/api/v1/chat/completions
+2025-11-22 19:30:25 - api.routes.chat_routes - ERROR - LLM parsing failed: Failed to call DeepSeek API: 429 Client Error: Too Many Requests for url: https://openrouter.ai/api/v1/chat/completions
+2025-11-22 19:30:54 - services.llm.deepseek_llm - ERROR - DeepSeek API request failed: 429 Client Error: Too Many Requests for url: https://openrouter.ai/api/v1/chat/completions
+2025-11-22 19:30:54 - core.recurrence_service - ERROR - LLM call failed: Failed to call DeepSeek API: 429 Client Error: Too Many Requests for url: https://openrouter.ai/api/v1/chat/completions
+2025-11-22 19:30:58 - services.llm.deepseek_llm - ERROR - DeepSeek API request failed: 429 Client Error: Too Many Requests for url: https://openrouter.ai/api/v1/chat/completions
+2025-11-22 19:30:58 - api.routes.chat_routes - ERROR - LLM parsing failed: Failed to call DeepSeek API: 429 Client Error: Too Many Requests for url: https://openrouter.ai/api/v1/chat/completions
+2025-11-22 19:33:33 - services.llm.deepseek_llm - ERROR - DeepSeek API request failed: 429 Client Error: Too Many Requests for url: https://openrouter.ai/api/v1/chat/completions
+2025-11-22 19:33:33 - core.recurrence_service - ERROR - LLM call failed: Failed to call DeepSeek API: 429 Client Error: Too Many Requests for url: https://openrouter.ai/api/v1/chat/completions
+2025-11-22 19:33:36 - services.llm.deepseek_llm - ERROR - DeepSeek API request failed: 429 Client Error: Too Many Requests for url: https://openrouter.ai/api/v1/chat/completions
+2025-11-22 19:33:36 - api.routes.chat_routes - ERROR - LLM parsing failed: Failed to call DeepSeek API: 429 Client Error: Too Many Requests for url: https://openrouter.ai/api/v1/chat/completions
+2025-11-22 19:34:12 - services.llm.deepseek_llm - ERROR - DeepSeek API request failed: 429 Client Error: Too Many Requests for url: https://openrouter.ai/api/v1/chat/completions
+2025-11-22 19:34:12 - core.recurrence_service - ERROR - LLM call failed: Failed to call DeepSeek API: 429 Client Error: Too Many Requests for url: https://openrouter.ai/api/v1/chat/completions
+2025-11-22 19:34:15 - services.llm.deepseek_llm - ERROR - DeepSeek API request failed: 429 Client Error: Too Many Requests for url: https://openrouter.ai/api/v1/chat/completions
+2025-11-22 19:34:15 - api.routes.chat_routes - ERROR - LLM parsing failed: Failed to call DeepSeek API: 429 Client Error: Too Many Requests for url: https://openrouter.ai/api/v1/chat/completions
+2025-11-22 19:34:51 - services.llm.deepseek_llm - ERROR - DeepSeek API request failed: 429 Client Error: Too Many Requests for url: https://openrouter.ai/api/v1/chat/completions
+2025-11-22 19:34:51 - core.recurrence_service - ERROR - LLM call failed: Failed to call DeepSeek API: 429 Client Error: Too Many Requests for url: https://openrouter.ai/api/v1/chat/completions
+2025-11-22 19:34:56 - services.llm.deepseek_llm - ERROR - DeepSeek API request failed: 429 Client Error: Too Many Requests for url: https://openrouter.ai/api/v1/chat/completions
+2025-11-22 19:34:56 - api.routes.chat_routes - ERROR - LLM parsing failed: Failed to call DeepSeek API: 429 Client Error: Too Many Requests for url: https://openrouter.ai/api/v1/chat/completions
+2025-11-22 19:36:43 - services.llm.deepseek_llm - ERROR - DeepSeek API request failed: 429 Client Error: Too Many Requests for url: https://openrouter.ai/api/v1/chat/completions
+2025-11-22 19:36:43 - core.recurrence_service - ERROR - LLM call failed: Failed to call DeepSeek API: 429 Client Error: Too Many Requests for url: https://openrouter.ai/api/v1/chat/completions
+2025-11-22 19:36:47 - services.llm.deepseek_llm - ERROR - DeepSeek API request failed: 429 Client Error: Too Many Requests for url: https://openrouter.ai/api/v1/chat/completions
+2025-11-22 19:36:47 - api.routes.chat_routes - ERROR - LLM parsing failed: Failed to call DeepSeek API: 429 Client Error: Too Many Requests for url: https://openrouter.ai/api/v1/chat/completions
+2025-11-22 19:41:00 - services.llm.deepseek_llm - ERROR - DeepSeek API request failed: 429 Client Error: Too Many Requests for url: https://openrouter.ai/api/v1/chat/completions
+2025-11-22 19:41:00 - core.recurrence_service - ERROR - LLM call failed: Failed to call DeepSeek API: 429 Client Error: Too Many Requests for url: https://openrouter.ai/api/v1/chat/completions
+2025-11-22 19:41:04 - services.llm.deepseek_llm - ERROR - DeepSeek API request failed: 429 Client Error: Too Many Requests for url: https://openrouter.ai/api/v1/chat/completions
+2025-11-22 19:41:04 - api.routes.chat_routes - ERROR - LLM parsing failed: Failed to call DeepSeek API: 429 Client Error: Too Many Requests for url: https://openrouter.ai/api/v1/chat/completions
+2025-11-22 19:51:57 - services.llm.deepseek_llm - ERROR - DeepSeek API request failed: 429 Client Error: Too Many Requests for url: https://openrouter.ai/api/v1/chat/completions
+2025-11-22 19:51:57 - core.recurrence_service - ERROR - LLM call failed: Failed to call DeepSeek API: 429 Client Error: Too Many Requests for url: https://openrouter.ai/api/v1/chat/completions
+2025-11-22 19:52:01 - services.llm.deepseek_llm - ERROR - DeepSeek API request failed: 429 Client Error: Too Many Requests for url: https://openrouter.ai/api/v1/chat/completions
+2025-11-22 19:52:01 - api.routes.chat_routes - ERROR - LLM parsing failed: Failed to call DeepSeek API: 429 Client Error: Too Many Requests for url: https://openrouter.ai/api/v1/chat/completions

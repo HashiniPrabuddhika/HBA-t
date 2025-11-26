@@ -55,11 +55,11 @@ class Settings(BaseSettings):
     SIMILARITY_THRESHOLD: float = 0.7
     CONFIDENCE_THRESHOLD: float = 0.5
     ANALYTICS_WINDOW_DAYS: int = 30
-    MIN_BOOKINGS_FOR_PATTERN: int = 3
+    MIN_BOOKINGS_FOR_PATTERN: int = 10
     
     BUSINESS_START_HOUR: int = 7
     BUSINESS_END_HOUR: int = 21
-    TIME_SLOT_MINUTES: int = 30
+    TIME_SLOT_MINUTES: int = 240
     
     CLUSTERING_MODEL_PATH: str = "./data/models/clustering_model.pkl"
     USER_EMBEDDING_PATH: str = "./data/embeddings/users"

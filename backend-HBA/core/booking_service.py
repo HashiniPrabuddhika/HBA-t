@@ -9,21 +9,22 @@ from models.room import MRBSRoom
 from models.user import MRBSUser, MRBSModule
 from core.validation_service import ValidationService
 from utils.logger import get_logger
-from services.recommendation.hybrid_engine import HybridRecommendationEngine
+# from services.recommendation.hybrid_engine import HybridRecommendationEngine
+from services.recommendations.core.hybridRecommendations import hybridRecommendationsEngine as HybridRecommendationEngine
 from config.recommendation_config import RecommendationConfig 
 
 logger = get_logger(__name__)
 
-rec_config = RecommendationConfig()
+config = RecommendationConfig()
 
 class BookingService:
     
     def __init__(self, db: Session, recommendation_engine=None):
         self.db = db
-        self.recommendation_engine = recommendation_engine
+        self.recommendation_engine = recommendation_engine 
         self.validator = ValidationService()
         try:
-            self.recommendation_engine = HybridRecommendationEngine(rec_config)
+            self.recommendation_engine = HybridRecommendationEngine(config=config)
             logger.info("Recommendation engine initialized successfully")
         except Exception as e:
             logger.warning(f"Recommendation engine initialization failed: {e}")
@@ -177,39 +178,88 @@ class BookingService:
             raise HTTPException(status_code=500, detail=f"Unexpected error: {e}")
         
     
-    def update_booking(self, booking_id: int, room_id: int, name: str, date: str,
-                      start_timestamp: int, end_timestamp: int, modified_by: str) -> Dict[str, Any]:
-        """Update an existing booking"""
-        logger.info(f"Updating booking: ID {booking_id}")
-        
-        start_datetime = datetime.fromtimestamp(start_timestamp)
-        self.validator.validate_future_datetime(
-            start_datetime.strftime("%Y-%m-%d"),
-            start_datetime.strftime("%H:%M"),
-            "update booking"
-        )
-        
-        booking = self.db.query(MRBSEntry).filter(MRBSEntry.id == booking_id).first()
-        if not booking:
-            raise HTTPException(status_code=404, detail="Booking not found")
-        
-        booking.room_id = room_id
-        booking.start_time = start_timestamp
-        booking.end_time = end_timestamp
-        booking.timestamp = date
-        booking.modified_by = modified_by
-        booking.name = name
-        
-        self.db.commit()
-        self.db.refresh(booking)
-        
-        logger.info(f"Booking updated successfully: ID {booking_id}")
-        
-        return {
-            "status": "success",
-            "message": "Booking updated successfully",
-            "modified_by": modified_by
-        }
+    def update_booking(original_room_name: str, original_date: str, original_start_time: str, 
+                    original_end_time: str, new_room_name: str = None, new_date: str = None,
+                    new_start_time: str = None, new_end_time: str = None, 
+                    modified_by: str = "system", db: Session = None):
+        try:
+            room = db.query(MRBSRoom).filter(MRBSRoom.room_name == original_room_name).first()
+            if not room:
+                return {"status": "room_not_found", "message": f"Room '{original_room_name}' not found."}
+            
+            start_dt = datetime.strptime(f"{original_date} {original_start_time}", "%Y-%m-%d %H:%M")
+            end_dt = datetime.strptime(f"{original_date} {original_end_time}", "%Y-%m-%d %H:%M")
+            start_ts, end_ts = int(time.mktime(start_dt.timetuple())), int(time.mktime(end_dt.timetuple()))
+            
+            booking = db.query(MRBSEntry).filter(
+                MRBSEntry.room_id == room.id,
+                MRBSEntry.start_time == start_ts,
+                MRBSEntry.end_time == end_ts
+            ).first()
+            
+            if not booking:
+                return {"status": "booking_not_found", 
+                    "message": f"No booking found for {original_room_name} on {original_date} from {original_start_time} to {original_end_time}."}
+            
+            if booking.create_by != modified_by:
+                raise HTTPException(
+                    status_code=403, 
+                    detail=f"Access denied. Only the booking creator ({booking.create_by}) can update this booking."
+                )
+            
+            final_room_name = new_room_name or original_room_name
+            final_date = new_date or original_date
+            final_start_time = new_start_time or original_start_time
+            final_end_time = new_end_time or original_end_time
+            
+            final_room_id = room.id
+            if new_room_name and new_room_name != original_room_name:
+                new_room = db.query(MRBSRoom).filter(MRBSRoom.room_name == new_room_name).first()
+                if not new_room:
+                    return {"status": "new_room_not_found", "message": f"New room '{new_room_name}' not found."}
+                final_room_id = new_room.id
+            
+            final_start_dt = datetime.strptime(f"{final_date} {final_start_time}", "%Y-%m-%d %H:%M")
+            final_end_dt = datetime.strptime(f"{final_date} {final_end_time}", "%Y-%m-%d %H:%M")
+            final_start_ts, final_end_ts = int(time.mktime(final_start_dt.timetuple())), int(time.mktime(final_end_dt.timetuple()))
+            
+            if final_end_ts <= final_start_ts:
+                return {"status": "invalid_time", "message": "End time must be after start time."}
+            
+            if (final_room_id != room.id or final_start_ts != start_ts or final_end_ts != end_ts):
+                conflict = db.query(MRBSEntry).filter(
+                    MRBSEntry.room_id == final_room_id,
+                    MRBSEntry.start_time < final_end_ts,
+                    MRBSEntry.end_time > final_start_ts,
+                    MRBSEntry.id != booking.id
+                ).first()
+                
+                if conflict:
+                    return {"status": "unavailable", "message": "The new time slot is not available."}
+            
+            booking.room_id = final_room_id
+            booking.start_time = final_start_ts
+            booking.end_time = final_end_ts
+            booking.modified_by = modified_by
+            booking.timestamp = datetime.now()
+            
+            db.commit()
+            
+            return {
+                "status": "success",
+                "message": "Booking updated successfully",
+                "booking_id": booking.id,
+                "original": {"room": original_room_name, "date": original_date, "start_time": original_start_time, "end_time": original_end_time},
+                "updated": {"room": final_room_name, "date": final_date, "start_time": final_start_time, "end_time": final_end_time},
+                "modified_by": modified_by
+            }
+            
+        except HTTPException:
+            raise
+        except Exception as e:
+            db.rollback()
+            raise HTTPException(status_code=500, detail=f"Error updating booking: {e}")
+
     
     def delete_booking(self, booking_id: int) -> Dict[str, Any]:
         try:
@@ -423,7 +473,8 @@ class BookingService:
         except Exception as e:
             logger.error(f"Recommendation system error: {e}")
             return []
-        
+ 
+
 def fetch_user_profile_by_email(email: str, db: Session):
     user = db.query(MRBSUser).filter(MRBSUser.email == email).first()
     if not user:

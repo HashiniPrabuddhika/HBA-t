@@ -29,7 +29,7 @@ class ValidationService:
             return False
     
     @staticmethod
-    def validate_future_datetime(date_str: str, time_str: str, context: str = "booking") -> None:
+    def validate_future_datetime(date_str: str, time_str: str, context: str = "booking", llm=None) -> None:
         
         try:
             booking_datetime = datetime.strptime(f"{date_str} {time_str}", "%Y-%m-%d %H:%M")
@@ -40,7 +40,7 @@ class ValidationService:
                     booking_datetime = datetime.strptime(
                         f"{normalized['date']} {normalized['time']}", 
                         "%Y-%m-%d %H:%M"
-                    )
+                )
                 except Exception as e:
                     raise HTTPException(
                         status_code=400,
@@ -85,7 +85,7 @@ class ValidationService:
             return {
                 "is_valid": False,
                 "error": "invalid_format",
-                "message": f"Could not parse date/time: {str(e)}",
+                "message": f"Could not parse date/time: {e}",
                 "parsed_date": None,
                 "parsed_time": None
             }
@@ -101,7 +101,10 @@ class ValidationService:
                 "parsed_time": parsed_time,
                 "requested_datetime": booking_datetime.strftime("%Y-%m-%d %H:%M"),
                 "current_datetime": current_datetime.strftime("%Y-%m-%d %H:%M"),
-                "suggestions": llm_suggestion.get("suggestions", {})
+                "suggestions": {
+                "dates": llm_suggestion.get("alternative_dates", []),
+                "times": llm_suggestion.get("alternative_times", [])
+            }
             }
         
         return {
@@ -109,7 +112,7 @@ class ValidationService:
             "parsed_date": parsed_date,
             "parsed_time": parsed_time,
             "message": f"Valid future booking: {booking_datetime.strftime('%Y-%m-%d %H:%M')}"
-        }
+    }
     
     @staticmethod
     def _parse_natural_datetime_with_llm(date_str: str, time_str: str, llm) -> Dict[str, str]:
@@ -132,6 +135,12 @@ Convert to standard format. Respond ONLY in JSON:
   "time": "HH:MM",
   "is_valid": true/false
 }}
+
+
+Examples:
+- "tomorrow" at "morning" → {{"date": "2025-11-16", "time": "09:00", "is_valid": true}}
+- "next Monday" at "3pm" → {{"date": "2025-11-18", "time": "15:00", "is_valid": true}}
+- "yesterday" at "10am" → {{"date": "2025-11-14", "time": "10:00", "is_valid": false}}
 
 Rules:
 - Parse relative dates (tomorrow, next week, etc.) based on current date
@@ -160,7 +169,7 @@ Respond in JSON only.
     
     @staticmethod
     def _get_llm_suggestions(booking_datetime: datetime, current_datetime: datetime, llm) -> Dict[str, Any]:
-        """Get helpful suggestions from LLM for past datetime"""
+       
         from datetime import timedelta
         
         prompt = f"""
@@ -182,6 +191,7 @@ Keep the message professional, helpful, and concise (max 2 sentences).
         try:
             raw_response = llm._call(prompt)
             cleaned = re.sub(r"^```json|```$", "", raw_response.strip(), flags=re.MULTILINE).strip()
+            llm_suggestion = json.loads(cleaned)
             return json.loads(cleaned)
         except Exception as e:
             logger.warning(f"LLM suggestion generation failed: {e}")

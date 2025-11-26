@@ -17,6 +17,7 @@ from api.routes.chat_routes import router
 from fastapi.middleware.cors import CORSMiddleware
 from core.booking_service import fetch_user_profile_by_email as fetch_profile_logic
 from api.routes.swap_routes import router as swap_router
+from middleware.auth import get_current_user_email
 app = FastAPI()
 
 # 👇 Allow frontend on localhost:3000
@@ -31,6 +32,7 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["x-access-token"],
 )
 
 app.include_router(router)
@@ -184,8 +186,12 @@ def available_slots_endpoint(
     return check_available_slotes(room_name, date, "00:00", "23:59", db)
 
 @app.delete("/booking/delete")
-def delete_booking(booking_id: int, db: Session = Depends(get_db)):
+def delete_booking(booking_id: int, db: Session = Depends(get_db),user_email: str = Depends(get_current_user_email)):
     from core.booking_service import delete_booking
+    booking = db.query(MRBSEntry).filter(MRBSEntry.id == booking_id).first()
+   
+    if booking.create_by != user_email:
+        raise HTTPException(status_code=403, detail="Access denied")
     return delete_booking(booking_id, db)
 
 

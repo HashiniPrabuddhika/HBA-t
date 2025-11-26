@@ -174,56 +174,91 @@ class MLRecommendationEngine:
             self.embeddings = None
    
     def get_recommendations(self, request_data: Dict[str, Any]) -> List[Dict[str, Any]]:
-
+        """FIXED: Get more recommendations from each strategy"""
         try:
             user_id = str(request_data.get('user_id', 'unknown'))
-            room_id = request_data.get('room_id', '')
-            start_time = request_data.get('start_time', '')
-            end_time = request_data.get('end_time', '')
-            purpose = request_data.get('purpose', '')
-            requirements = request_data.get('requirements', {})
             
             logger.info(f"Generating recommendations for user {user_id}")
             
             recommendations = []
             
+            # CHANGE 1: Get MORE alternative time recommendations (was returning too few)
             try:
                 alt_time_recs = self._get_alternative_time_recommendations_from_db(request_data)
-                recommendations.extend(alt_time_recs)
+                if alt_time_recs:
+                    recommendations.extend(alt_time_recs[:5])  # Take top 5 instead of all
+                    logger.info(f"✓ Added {len(alt_time_recs[:5])} alternative time recommendations")
             except Exception as e:
                 logger.warning(f"Alternative time recommendations failed: {e}")
             
+            # CHANGE 2: Get MORE alternative room recommendations
             try:
                 alt_room_recs = self._get_alternative_room_recommendations_from_db(request_data)
-                recommendations.extend(alt_room_recs)
+                if alt_room_recs:
+                    recommendations.extend(alt_room_recs[:5])  # Take top 5
+                    logger.info(f"✓ Added {len(alt_room_recs[:5])} alternative room recommendations")
             except Exception as e:
                 logger.warning(f"Alternative room recommendations failed: {e}")
             
+            # CHANGE 3: Get proactive recommendations
             try:
                 proactive_recs = self._get_proactive_recommendations_from_db(request_data)
-                recommendations.extend(proactive_recs)
+                if proactive_recs:
+                    recommendations.extend(proactive_recs[:3])  # Take top 3
+                    logger.info(f"✓ Added {len(proactive_recs[:3])} proactive recommendations")
             except Exception as e:
                 logger.warning(f"Proactive recommendations failed: {e}")
             
+            # CHANGE 4: Get smart scheduling recommendations
             try:
                 smart_recs = self._get_smart_scheduling_recommendations_from_db(request_data)
-                recommendations.extend(smart_recs)
+                if smart_recs:
+                    recommendations.extend(smart_recs[:3])  # Take top 3
+                    logger.info(f"✓ Added {len(smart_recs[:3])} smart scheduling recommendations")
             except Exception as e:
                 logger.warning(f"Smart scheduling recommendations failed: {e}")
             
             if not recommendations:
-                logger.info("No recommendations generated, creating fallback recommendations")
-                recommendations = self._create_fallback_recommendations(request_data)
+                logger.warning("⚠️ No recommendations found from any strategy")
+                return []
             
-            logger.info(f"Generated {len(recommendations)} recommendations for user {user_id}")
-            return recommendations
+            logger.info(f"✅ Total recommendations before dedup: {len(recommendations)}")
+            
+            # Remove duplicates
+            unique_recs = self._deduplicate_recommendations(recommendations)
+            logger.info(f"✅ After deduplication: {len(unique_recs)} unique recommendations")
+            
+            # Return top 10 (will be reduced to 8 in hybrid engine)
+            return unique_recs[:10]
             
         except Exception as e:
-            logger.error(f"Error generating recommendations: {e}")
-            return self._create_fallback_recommendations(request_data)
+            logger.error(f"Error generating recommendations: {e}", exc_info=True)
+            return []
+
+
+    def _deduplicate_recommendations(self, recommendations: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """Remove duplicate recommendations"""
+        seen = set()
+        unique_recs = []
+        
+        for rec in recommendations:
+            suggestion = rec.get('suggestion', {})
+            # Create key from room + start_time + date
+            key = (
+                suggestion.get('room_name', ''),
+                suggestion.get('start_time', ''),
+                suggestion.get('date', '')
+            )
+            
+            if key not in seen and key[0]:  # Ensure room_name exists
+                seen.add(key)
+                unique_recs.append(rec)
+        
+        return unique_recs
     
 
     def _get_alternative_time_recommendations_from_db(self, request_data: Dict[str, Any]) -> List[Dict[str, Any]]:
+        """FIXED: Get MORE alternative time recommendations"""
         if not self.db:
             return []
         
@@ -231,7 +266,8 @@ class MLRecommendationEngine:
             room_name = request_data.get('room_id', '')
             start_time_str = request_data.get('start_time', '')
             end_time_str = request_data.get('end_time', '')
-             
+            
+            # Parse datetime
             try:
                 if 'T' in start_time_str:
                     start_time = datetime.fromisoformat(start_time_str.replace('Z', '+00:00'))
@@ -240,9 +276,9 @@ class MLRecommendationEngine:
                     start_time = datetime.strptime(start_time_str, '%Y-%m-%d %H:%M:%S')
                     end_time = datetime.strptime(end_time_str, '%Y-%m-%d %H:%M:%S')
             except (ValueError, TypeError):
-                logger.warning("Could not parse datetime strings, using current time")
-                start_time = start_time_str
-                end_time = end_time_str
+                logger.warning("Could not parse datetime strings")
+                start_time = datetime.now()
+                end_time = start_time + timedelta(hours=1)
             
             duration = end_time - start_time
             
@@ -252,33 +288,34 @@ class MLRecommendationEngine:
             ).first()
             
             if not room:
-                logger.warning(f"Room {room_name} not found or disabled")
+                logger.warning(f"Room {room_name} not found")
                 return []
             
             recommendations = []
             
-            logger.info(f" Checking same-day alternatives for {start_time.strftime('%Y-%m-%d')}")
+            # Get same-day alternatives
             same_day_alternatives = self._get_same_day_alternatives(
                 room, start_time, end_time, duration, room_name
             )
             recommendations.extend(same_day_alternatives)
-        
-            if len(same_day_alternatives) < 3:  
-                logger.info("Checking next available days")
-                next_day_alternatives = self._get_next_day_alternatives(
-                    room, start_time, end_time, duration, room_name, 
-                    max_days=5  
-                )
-                recommendations.extend(next_day_alternatives)
             
+            # CHANGE: Always check next days to get MORE recommendations
+            next_day_alternatives = self._get_next_day_alternatives(
+                room, start_time, end_time, duration, room_name, 
+                max_days=7  # Check more days ahead
+            )
+            recommendations.extend(next_day_alternatives)
+            
+            # Sort by relevance
             recommendations.sort(key=lambda x: (
-                x.get('is_same_day', False),  
-                x['score']  
-            ), reverse=True)
+                not x.get('is_same_day', False),  # Same day first
+                -x['score']  # Then by score
+            ))
             
-            final_recommendations = recommendations[:8]
+            # CHANGE: Return MORE recommendations (was [:8], now [:10])
+            final_recommendations = recommendations[:10]
             
-            logger.info(f"✅ Found {len(final_recommendations)} alternative time recommendations")
+            logger.info(f"Found {len(final_recommendations)} alternative time recommendations")
             return final_recommendations
             
         except Exception as e:
@@ -535,7 +572,7 @@ class MLRecommendationEngine:
 
 
     def _get_alternative_room_recommendations_from_db(self, request_data: Dict[str, Any]) -> List[Dict[str, Any]]:
-        """Get alternative room recommendations using actual database data"""
+        """FIXED: Get MORE alternative room recommendations"""
         if not self.db:
             return []
         
@@ -545,6 +582,7 @@ class MLRecommendationEngine:
             end_time_str = request_data.get('end_time', '')
             capacity_required = request_data.get('capacity', 1)
             
+            # Parse datetime
             try:
                 if 'T' in start_time_str:
                     start_time = datetime.fromisoformat(start_time_str.replace('Z', '+00:00'))
@@ -553,28 +591,31 @@ class MLRecommendationEngine:
                     start_time = datetime.strptime(start_time_str, '%Y-%m-%d %H:%M:%S')
                     end_time = datetime.strptime(end_time_str, '%Y-%m-%d %H:%M:%S')
             except (ValueError, TypeError):
-                logger.warning("Could not parse datetime strings, using current time")
-                start_time = start_time_str
-                end_time = end_time_str
+                logger.warning("Could not parse datetime strings")
+                start_time = datetime.now()
+                end_time = start_time + timedelta(hours=1)
             
-            # Convert to Unix timestamps
             start_timestamp = int(start_time.timestamp())
             end_timestamp = int(end_time.timestamp())
             
-            # Get the original room for comparison
+            # Get the original room
             original_room = self.db.query(MRBSRoom).filter(
                 MRBSRoom.room_name == room_name,
                 MRBSRoom.disabled == False
             ).first()
             
-            # Find alternative rooms with similar or better capacity
+            # CHANGE: Widen capacity range to get MORE rooms
+            capacity_min = capacity_required - 5 if capacity_required > 5 else 1
+            capacity_max = capacity_required + 10
+            
+            # Find alternative rooms with WIDER capacity range
             alternative_rooms_query = self.db.query(MRBSRoom).filter(
                 MRBSRoom.disabled == False,
                 MRBSRoom.room_name != room_name,
-                MRBSRoom.capacity >= capacity_required
+                MRBSRoom.capacity >= capacity_min,
+                MRBSRoom.capacity <= capacity_max
             )
             
-            # If we have the original room, prioritize rooms with similar capacity
             if original_room:
                 alternative_rooms_query = alternative_rooms_query.order_by(
                     func.abs(MRBSRoom.capacity - original_room.capacity)
@@ -582,33 +623,31 @@ class MLRecommendationEngine:
             else:
                 alternative_rooms_query = alternative_rooms_query.order_by(MRBSRoom.capacity)
             
-            alternative_rooms = alternative_rooms_query.limit(10).all()
+            # CHANGE: Get MORE rooms (was .limit(10), now .limit(20))
+            alternative_rooms = alternative_rooms_query.limit(20).all()
             
             recommendations = []
             
             for room in alternative_rooms:
-                # Check if this room is available at the requested time
+                # Check availability
                 conflicts = self.db.query(MRBSEntry).filter(
                     MRBSEntry.room_id == room.id,
                     MRBSEntry.start_time < end_timestamp,
                     MRBSEntry.end_time > start_timestamp,
-                    MRBSEntry.status == 0  # Assuming 0 is active status
+                    MRBSEntry.status == 0
                 ).count()
                 
                 if conflicts == 0:
-                    # Calculate score based on room similarity
+                    # Calculate score
                     score = 0.75
                     if original_room:
-                        # Bonus for similar capacity
                         capacity_diff = abs(room.capacity - original_room.capacity)
                         if capacity_diff == 0:
                             score += 0.2
                         elif capacity_diff <= 2:
                             score += 0.1
-                        
-                        if hasattr(room, 'area_id') and hasattr(original_room, 'area_id'):
-                            if room.area_id == original_room.area_id:
-                                score += 0.1
+                        elif capacity_diff <= 5:
+                            score += 0.05
                     
                     recommendations.append({
                         'type': 'alternative_room',
@@ -621,20 +660,23 @@ class MLRecommendationEngine:
                             'description': room.description or '',
                             'start_time': start_time.isoformat(),
                             'end_time': end_time.isoformat(),
+                            'date': start_time.strftime('%Y-%m-%d'),
                             'confidence': min(score, 1.0)
                         },
                         'data_source': 'mysql_alternative_room'
                     })
                     
-                    # Limit to top 5 alternative rooms
-                    if len(recommendations) >= 5:
+                    # CHANGE: Get MORE alternatives (was 5, now 10)
+                    if len(recommendations) >= 10:
                         break
             
+            logger.info(f"Found {len(recommendations)} alternative room recommendations")
             return recommendations
             
         except Exception as e:
-            logger.error(f"Error in alternative room recommendations: {e}")
+            logger.error(f"Error in alternative room recommendations: {e}", exc_info=True)
             return []
+
     
     def _get_proactive_recommendations_from_db(self, request_data: Dict[str, Any]) -> List[Dict[str, Any]]:
         """Get proactive recommendations based on user's booking history"""

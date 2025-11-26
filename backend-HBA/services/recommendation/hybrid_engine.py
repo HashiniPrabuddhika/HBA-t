@@ -46,9 +46,9 @@ class HybridRecommendationEngine(BaseRecommendationEngine):
         if self.ml_available and self.llm_available:
             self.mode = 'full_hybrid'
             self.base_weights = {
-                'existing_system': 0.85,  # Base rules
-                'ml_similarity': 0.075,   # ML embeddings
-                'llm_context': 0.075      # LLM context
+                'existing_system': 0.85,
+                'ml_similarity': 0.075,
+                'llm_context': 0.075
             }
         elif self.ml_available:
             self.mode = 'ml_enhanced'
@@ -73,7 +73,48 @@ class HybridRecommendationEngine(BaseRecommendationEngine):
             }
         
         logger.info(f"Engine mode: {self.mode}, Weights: {self.base_weights}")
+    
+    # FIX 1: Add missing _parse_datetime method
+    def _parse_datetime(self, datetime_str):
+        """Parse datetime string in various formats"""
+        if isinstance(datetime_str, datetime):
+            return datetime_str
         
+        if not datetime_str:
+            return datetime.now()
+        
+        # Try ISO format first
+        try:
+            return datetime.fromisoformat(str(datetime_str).replace('Z', '+00:00'))
+        except (ValueError, AttributeError):
+            pass
+        
+        # Try standard format
+        try:
+            return datetime.strptime(str(datetime_str), '%Y-%m-%d %H:%M:%S')
+        except (ValueError, AttributeError):
+            pass
+        
+        # Try date only format
+        try:
+            return datetime.strptime(str(datetime_str), '%Y-%m-%d')
+        except (ValueError, AttributeError):
+            pass
+        
+        logger.warning(f"Could not parse datetime: {datetime_str}, using current time")
+        return datetime.now()
+    
+    # FIX 2: Add missing _calculate_duration_minutes method
+    def _calculate_duration_minutes(self, start_dt, end_dt):
+        """Calculate duration in minutes between two datetime objects"""
+        try:
+            if isinstance(start_dt, datetime) and isinstance(end_dt, datetime):
+                return int((end_dt - start_dt).total_seconds() / 60)
+            return 60  # Default 1 hour
+        except Exception as e:
+            logger.error(f"Error calculating duration: {e}")
+            return 60
+    
     def _get_priority_order(self, rec_type):
         priority_map = {
             'alternative_room': 1,   
@@ -87,6 +128,10 @@ class HybridRecommendationEngine(BaseRecommendationEngine):
         return sorted(recommendations, 
                      key=lambda x: (self._get_priority_order(x.get('type', 'default')), 
                                    -x.get('final_score', 0)))
+    
+    def _add_duration_to_datetime(self, dt: datetime, minutes: int) -> datetime:
+        """Add duration in minutes to datetime"""
+        return dt + timedelta(minutes=minutes)
     
     def get_recommendations(self, request_data: Dict[str, Any]) -> List[Dict[str, Any]]:
         
@@ -136,30 +181,54 @@ class HybridRecommendationEngine(BaseRecommendationEngine):
             logger.error(f"Hybrid recommendation error: {e}", exc_info=True)
             base_recs = self._get_base_recommendations(request_data)
             return self._validate_and_fix_durations(base_recs, user_duration_minutes, request_data)
-        
+    
+    # FIX 3: Improved _get_base_recommendations to extract room names properly
     def _get_base_recommendations(self, request_data: Dict[str, Any]) -> List[Dict[str, Any]]:
         try:
             recs = super().get_recommendations(request_data)
             
             if not recs:
+                logger.warning("No base recommendations returned from parent class")
                 return []
             
+            # FIX: Extract room names properly from suggestions
             for i, rec in enumerate(recs):
                 if 'base_score' not in rec:
                     rec['base_score'] = rec.get('score', 0.5)
                 
-                if isinstance(rec.get('suggestion'), dict):
-                    rec['room_name'] = rec['suggestion'].get('room_name', f'Room_{i+1}')
-                else:
-                    rec['room_name'] = rec.get('room_name', f'Room_{i+1}')
+                # Extract room_name from various possible locations
+                room_name = None
                 
-                if 'suggestion' not in rec:
-                    rec['suggestion'] = {'room_name': rec['room_name'], 'capacity': 10}
+                # Check suggestion dict first
+                suggestion = rec.get('suggestion', {})
+                if isinstance(suggestion, dict):
+                    room_name = suggestion.get('room_name') or suggestion.get('room_id')
+                
+                # Check top-level if not found
+                if not room_name:
+                    room_name = rec.get('room_name') or rec.get('room_id')
+                
+                # Fallback with warning
+                if not room_name:
+                    room_name = f'Room_{i+1}'
+                    logger.warning(f"Recommendation {i} missing room name, using fallback: {room_name}")
+                
+                # Set room_name at top level
+                rec['room_name'] = room_name
+                
+                # Ensure suggestion dict exists and has room_name
+                if not isinstance(rec.get('suggestion'), dict):
+                    rec['suggestion'] = {}
+                
+                rec['suggestion']['room_name'] = room_name
+                if 'capacity' not in rec['suggestion']:
+                    rec['suggestion']['capacity'] = 10
             
+            logger.info(f"✓ Processed {len(recs)} base recommendations with room names")
             return recs
             
         except Exception as e:
-            print(f"❌ Base recommendation error: {e}")
+            logger.error(f"❌ Base recommendation error: {e}", exc_info=True)
             return []
 
     
@@ -168,6 +237,7 @@ class HybridRecommendationEngine(BaseRecommendationEngine):
         base_recs = self._get_base_recommendations(request_data)
         logger.info(f"Base recommendations: {len(base_recs)}")
         
+        # FIX 4: Pass request_data to prepare context (not just user_id)
         user_context = self._prepare_user_context_sync(request_data)
         
         ml_scores = {}
@@ -182,7 +252,9 @@ class HybridRecommendationEngine(BaseRecommendationEngine):
         
         enhanced_recs = self._calculate_final_scores(base_recs, ml_scores, llm_scores)
         
-        return self._sort_by_priority(enhanced_recs)[:8]
+        # FIX 5: Return more recommendations (up to 8)
+        sorted_recs = self._sort_by_priority(enhanced_recs)
+        return sorted_recs[:8]  # Return top 8 instead of limiting
     
     async def _get_enhanced_recommendations_async(self, request_data: Dict[str, Any]) -> List[Dict[str, Any]]:
         base_recs = super().get_recommendations(request_data)
@@ -201,7 +273,10 @@ class HybridRecommendationEngine(BaseRecommendationEngine):
         
         enhanced_recs = self._calculate_final_scores(base_recs, ml_scores, llm_scores)
         
-        return self._sort_by_priority(enhanced_recs)[:8]
+        # Deduplicate before sorting
+        deduplicated_recs = self._deduplicate_recommendations(enhanced_recs)
+        
+        return self._sort_by_priority(deduplicated_recs)[:8]
     
     def _prepare_user_context_sync(self, request_data: Dict[str, Any]) -> Dict[str, Any]:
         """Prepare user context for scoring"""
@@ -221,7 +296,6 @@ class HybridRecommendationEngine(BaseRecommendationEngine):
         
         try:
             if not self.enhanced_embeddings or not self.ml_available:
-                # Return neutral scores if ML unavailable
                 for rec in recommendations:
                     room_name = rec.get('room_name', '')
                     if room_name:
@@ -278,7 +352,6 @@ class HybridRecommendationEngine(BaseRecommendationEngine):
                 if room_name:
                     llm_scores[room_name] = 0.600
         
-        
         return llm_scores
     
     async def _run_llm_analysis(self, recommendations: List[Dict], user_context: Dict) -> Dict[str, float]:
@@ -286,14 +359,7 @@ class HybridRecommendationEngine(BaseRecommendationEngine):
         return self._run_llm_analysis_sync(recommendations, user_context)
     
     def _calculate_ml_score_sync(self, rec: Dict, user_context: Dict) -> float:
-        """
-        Calculate ML-based score using embeddings
-        
-        This is where you'd use:
-        - Room similarity embeddings
-        - User preference embeddings
-        - Historical booking patterns
-        """
+        """Calculate ML-based score using embeddings"""
         base_score = 0.5
         
         try:
@@ -304,27 +370,15 @@ class HybridRecommendationEngine(BaseRecommendationEngine):
                            if booking.get('room_name') == room_name)
             
             if room_usage > 0:
-                base_score += min(room_usage * 0.02, 0.1)  # Very minimal impact
+                base_score += min(room_usage * 0.02, 0.1)
             
         except Exception:
             pass
         
-        # Example: Compare room embedding with user's preferred room embeddings
-        # room_embedding = self.enhanced_embeddings.get_room_embedding(room_name)
-        # user_prefs = self.enhanced_embeddings.get_user_preferences(user_id)
-        # similarity = cosine_similarity(room_embedding, user_prefs)
-        
         return min(base_score, 1.0)
     
     def _calculate_llm_score_sync(self, rec: Dict, user_context: Dict) -> float:
-        """
-        Calculate LLM-based score using context understanding
-        
-        This is where you'd use:
-        - Natural language understanding of booking purpose
-        - Context-aware reasoning
-        - Semantic matching
-        """
+        """Calculate LLM-based score using context understanding"""
         base_score = 0.6
         
         try:
@@ -357,9 +411,9 @@ class HybridRecommendationEngine(BaseRecommendationEngine):
             room_name = rec.get('room_name', '')
             
             # Get individual scores
-            base_score = rec.get('score', 0.5)  # Base rules score
-            ml_score = ml_scores.get(room_name, 0.5)  # ML score
-            llm_score = llm_scores.get(room_name, 0.5)  # LLM score
+            base_score = rec.get('score', 0.5)
+            ml_score = ml_scores.get(room_name, 0.5)
+            llm_score = llm_scores.get(room_name, 0.5)
             
             # Calculate weighted final score
             final_score = (
@@ -383,30 +437,6 @@ class HybridRecommendationEngine(BaseRecommendationEngine):
             enhanced_recs.append(rec)
         
         return enhanced_recs
-    
-    def _print_final_scores(self, recommendations: List[Dict]):
-        """Print final scores summary with priority-based ordering"""
-        print("\n" + "="*150)
-        print("🏆 FINAL HYBRID SCORES WITH PRIORITY-BASED ORDERING")
-        print("="*150)
-        print(f"{'Rank':<5} | {'Type':<18} | {'Room Name':<25} | {'Hybrid':>8} | {'Base':>8} | {'ML':>8} | {'LLM':>8}")
-        print("-" * 150)
-        
-        for i, rec in enumerate(recommendations[:8], 1):
-            room_name = rec.get('room_name', f'Room_{i}')[:24]
-            rec_type = rec.get('type', 'unknown')[:17]
-            suggestion = rec.get('suggestion', {})
-            
-            final_score = rec.get('final_score', 0.0)
-            base_score = rec.get('base_score', rec.get('score', 0.0))
-            ml_score = rec.get('ml_score', 0.0)
-            llm_score = rec.get('llm_score', 0.0)
-            
-            print(f"{i:<5} | {rec_type:<18} | {room_name:<25} | {final_score:>8.3f} | {base_score:>8.3f} | {ml_score:>8.3f} | {llm_score:>8.3f}")
-        
-        print("="*150)
-        print(f"📈 Total: {len(recommendations)} | Priority Order: Alternative Rooms → Alternative Times → Smart Scheduling")
-        print("="*150 + "\n")
     
     def _sort_by_priority(self, recommendations: List[Dict]) -> List[Dict]:
         """Sort recommendations by type priority and final score"""
@@ -455,18 +485,34 @@ class HybridRecommendationEngine(BaseRecommendationEngine):
         return validated_recs
     
     def _log_final_scores(self, recommendations: List[Dict]):
-        """Log final scoring results"""
+        """Log final scoring results with room names visible"""
         logger.info(f"Generated {len(recommendations)} hybrid recommendations")
+        
         for i, rec in enumerate(recommendations[:5], 1):
+            room_name = rec.get('room_name', 'UNKNOWN')
+            rec_type = rec.get('type', 'unknown')
+            
+            # Also try to get from suggestion
+            if room_name == 'UNKNOWN' and 'suggestion' in rec:
+                room_name = rec['suggestion'].get('room_name', 'UNKNOWN')
+            
             breakdown = rec.get('score_breakdown', {})
             logger.debug(
-                f"Rank {i}: {rec.get('type')} - "
-                f"{rec.get('suggestion', {}).get('room_name')} - "
+                f"Rank {i}: {rec_type} - "
+                f"Room: {room_name} - "
                 f"Final: {rec.get('final_score', 0):.3f} "
                 f"(Base: {breakdown.get('base', 0):.3f}, "
                 f"ML: {breakdown.get('ml', 0):.3f}, "
                 f"LLM: {breakdown.get('llm', 0):.3f})"
             )
+        
+        # Print summary table for visibility
+        print("\n=== RECOMMENDATIONS SUMMARY ===")
+        for i, rec in enumerate(recommendations[:8], 1):
+            room_name = rec.get('room_name') or rec.get('suggestion', {}).get('room_name', 'UNKNOWN')
+            rec_type = rec.get('type', 'unknown')
+            print(f"{i}. [{rec_type:20}] Room: {room_name}")
+        print("=" * 50)
     
     def get_engine_status(self) -> Dict[str, Any]:
         base_status = super().get_engine_status()
@@ -484,128 +530,8 @@ class HybridRecommendationEngine(BaseRecommendationEngine):
                 'time_validation',
                 'end_time_calculation',
                 'availability_checking',
-                'priority_based_sorting'
+                'priority_based_sorting',
+                'room_name_extraction',
+                'datetime_parsing'
             ]
-           
         }
-        
-    def get_recommendation_explanation(self, recommendation: Dict) -> Dict[str, Any]:
-        """Get explanation for a recommendation"""
-        suggestion = recommendation.get('suggestion', {})
-        
-        # Calculate duration info
-        duration_info = {}
-        try:
-            if 'duration_minutes' in suggestion:
-                duration_minutes = suggestion['duration_minutes']
-                duration_info = {
-                    'duration_minutes': duration_minutes,
-                    'duration_hours': duration_minutes / 60,
-                    'duration_display': f"{duration_minutes} minutes ({duration_minutes/60:.1f} hours)"
-                }
-            else:
-                start_dt = self._parse_datetime(suggestion.get('start_time', ''))
-                end_dt = self._parse_datetime(suggestion.get('end_time', ''))
-                duration_minutes = self._calculate_duration_minutes(start_dt, end_dt)
-                duration_info = {
-                    'duration_minutes': duration_minutes,
-                    'duration_hours': duration_minutes / 60,
-                    'duration_display': f"{duration_minutes} minutes ({duration_minutes/60:.1f} hours)"
-                }
-        except Exception as e:
-            duration_info = {'error': f'Could not calculate duration: {e}'}
-        
-        return {
-            'room_name': recommendation.get('room_name', 'Unknown'),
-            'start_time': suggestion.get('start_time', 'N/A'),
-            'end_time': suggestion.get('end_time', 'N/A'),
-            'duration_info': duration_info,
-            'final_score': recommendation.get('final_score', 0),
-            'score_breakdown': recommendation.get('score_breakdown', {}),
-            'mode_used': self.mode,
-            'recommendation_type': recommendation.get('type', 'unknown'),
-            'data_source': recommendation.get('data_source', 'unknown'),
-            'duration_handling_method': 'preserved_user_duration',
-            'priority_order': self._get_priority_order(recommendation.get('type', 'unknown')),
-            'fixes_applied': 'time_validation_duration_preservation_priority_sorting'
-        }
-
-    def check_lt1_availability(self, date: str, start_time: str, end_time: str) -> Dict[str, Any]:
-        """Specific method to check LT1 availability for your booking request"""
-        try:
-            full_start = f"{date}T{start_time}:00"
-            full_end = f"{date}T{end_time}:00"
-            
-            return self.check_room_availability_for_booking('LT1', full_start, full_end)
-        except Exception as e:
-            return {
-                'available': False,
-                'message': f'Error checking LT1 availability: {str(e)}',
-                'error': True
-            }
-
-    def demo_lt1_booking_fix(self) -> Dict[str, Any]:
-        """Demonstrate the LT1 booking fix for 2025-08-15 8AM-12PM"""
-        
-        request_data = {
-            'user_id': 'demo_user',
-            'room_id': 'LT1',
-            'start_time': '2025-08-15T08:00:00',
-            'end_time': '2025-08-15T12:00:00',
-            'purpose': 'lecture',
-            'capacity': 50
-        }
-        
-        print("\n🎯 DEMONSTRATING LT1 BOOKING FIX WITH PRIORITY ORDERING")
-        print("="*70)
-        print(f"Request: LT1 on 2025-08-15 from 08:00 to 12:00 (4 hours)")
-        
-        # Check LT1 availability first
-        lt1_check = self.check_lt1_availability('2025-08-15', '08:00', '12:00')
-        print(f"LT1 Availability: {lt1_check.get('message', 'Unknown')}")
-        
-        # Get recommendations
-        recommendations = self.get_recommendations(request_data)
-        
-        # Validate that all recommendations have 4-hour duration and correct ordering
-        print("\n📊 DURATION & ORDERING VALIDATION:")
-        type_counts = {'alternative_room': 0, 'alternative_time': 0, 'smart_scheduling': 0}
-        
-        for i, rec in enumerate(recommendations[:5], 1):
-            suggestion = rec.get('suggestion', {})
-            rec_type = rec.get('type', 'unknown')
-            type_counts[rec_type] = type_counts.get(rec_type, 0) + 1
-            
-            try:
-                start_dt = self._parse_datetime(suggestion.get('start_time', ''))
-                end_dt = self._parse_datetime(suggestion.get('end_time', ''))
-                duration_min = self._calculate_duration_minutes(start_dt, end_dt)
-                
-                print(f"{i}. {rec_type} - {suggestion.get('room_name', 'Unknown')}: {duration_min} minutes ({'✅' if duration_min == 240 else '❌'})")
-            except:
-                print(f"{i}. {rec_type} - {suggestion.get('room_name', 'Unknown')}: Duration calculation error")
-        
-        return {
-            'lt1_availability': lt1_check,
-            'recommendations_count': len(recommendations),
-            'type_distribution': type_counts,
-            'all_durations_correct': all(
-                self._get_duration_from_rec(rec) == 240 
-                for rec in recommendations[:3] 
-                if self._get_duration_from_rec(rec) is not None
-            ),
-            'priority_ordering_applied': True
-        }
-    
-    def _get_duration_from_rec(self, rec: Dict) -> Optional[int]:
-        """Helper to get duration from recommendation"""
-        try:
-            suggestion = rec.get('suggestion', {})
-            if 'duration_minutes' in suggestion:
-                return suggestion['duration_minutes']
-            
-            start_dt = self._parse_datetime(suggestion.get('start_time', ''))
-            end_dt = self._parse_datetime(suggestion.get('end_time', ''))
-            return self._calculate_duration_minutes(start_dt, end_dt)
-        except:
-            return None

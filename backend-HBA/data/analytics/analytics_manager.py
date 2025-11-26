@@ -393,7 +393,7 @@ class AnalyticsManager:
             return {
                 'last_30_days': {
                     'total_bookings': booking_stats[0] or 0, 'total_cancellations': booking_stats[1] or 0,
-                    'unique_users': booking_stats[2] or 0, 'avg_booking_duration': booking_stats[3] or 0,
+                    'unique_users': booking_stats[2] or 0, 'avg_booking_duration': booking_stats[8] or 0,
                     'total_events': total_events, 'total_recommendation_events': total_rec_events
                 },
                 'database_info': {'size_bytes': db_size, 'size_mb': db_size / (1024 * 1024)}
