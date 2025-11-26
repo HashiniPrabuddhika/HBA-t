@@ -1,0 +1,64 @@
+2025-11-23 06:39:58 - core.booking_service - INFO - Recommendation engine initialized successfully
+2025-11-23 06:48:06 - core.booking_service - INFO - Recommendation engine initialized successfully
+2025-11-23 06:48:06 - core.booking_service - INFO - Checking availability: LT1 on 2025-11-23 08:00-09:00
+2025-11-23 06:52:44 - core.booking_service - INFO - Recommendation engine initialized successfully
+2025-11-23 06:52:44 - core.booking_service - INFO - Checking availability: LT1 on 2025-11-23 08:00-09:00
+2025-11-23 07:05:25 - core.booking_service - INFO - Recommendation engine initialized successfully
+2025-11-23 07:05:25 - core.booking_service - INFO - Checking availability: LT1 on 2025-11-23 08:00-09:00
+2025-11-23 07:05:25 - core.booking_service - INFO - Generated 3 recommendations
+2025-11-23 07:39:34 - core.booking_service - INFO - Recommendation engine initialized successfully
+2025-11-23 07:39:34 - core.booking_service - INFO - Checking availability: LT1 on 2025-11-23 08:00-09:00
+2025-11-23 07:39:34 - core.booking_service - INFO - Generated 3 recommendations
+2025-11-23 07:42:17 - core.booking_service - INFO - Recommendation engine initialized successfully
+2025-11-23 07:42:17 - core.booking_service - INFO - Checking availability: LT1 on 2025-11-23 08:00-09:00
+2025-11-23 07:42:17 - core.booking_service - INFO - Generated 3 recommendations
+2025-11-23 08:20:50 - core.booking_service - INFO - Recommendation engine initialized successfully
+2025-11-23 08:20:50 - core.booking_service - INFO - Creating booking: LT1 on 2025-11-24 for prabuddhika_rph_e22@engug.ruh.ac.lk
+2025-11-23 08:20:51 - core.booking_service - INFO - Booking created successfully: ID 54
+2025-11-23 08:22:13 - core.booking_service - INFO - Recommendation engine initialized successfully
+2025-11-23 08:22:13 - core.booking_service - INFO - Checking availability: LT1 on 2025-11-24 08:00-09:00
+2025-11-23 08:22:13 - core.booking_service - INFO - Generated 3 recommendations
+2025-11-23 08:27:45 - core.booking_service - INFO - Recommendation engine initialized successfully
+2025-11-23 08:27:45 - core.booking_service - INFO - Checking availability: LT1 on 2025-11-24 08:00-09:00
+2025-11-23 08:27:45 - core.booking_service - INFO - Generated 3 recommendations
+2025-11-23 08:39:10 - core.booking_service - INFO - Recommendation engine initialized successfully
+2025-11-23 08:39:10 - core.booking_service - INFO - Checking availability: LT1 on 2025-11-24 08:00-09:00
+2025-11-23 08:39:10 - core.booking_service - INFO - Generated 3 recommendations
+2025-11-23 08:41:40 - core.booking_service - INFO - Recommendation engine initialized successfully
+2025-11-23 08:41:40 - core.booking_service - INFO - Checking availability: LT1 on 2025-11-24 08:00-09:00
+2025-11-23 08:41:40 - core.booking_service - INFO - Generated 3 recommendations
+2025-11-23 09:06:28 - core.booking_service - INFO - Recommendation engine initialized successfully
+2025-11-23 09:06:28 - core.booking_service - INFO - Checking availability: LT1 on 2025-11-24 08:00-09:00
+2025-11-23 09:06:28 - core.booking_service - INFO - Generated 3 recommendations
+2025-11-23 09:24:41 - core.booking_service - INFO - Recommendation engine initialized successfully
+2025-11-23 09:24:41 - core.booking_service - INFO - Checking availability: LT1 on 2025-11-24 08:00-09:00
+2025-11-23 09:24:41 - core.booking_service - INFO - Generated 3 recommendations
+2025-11-23 09:36:53 - core.booking_service - INFO - Recommendation engine initialized successfully
+2025-11-23 09:36:53 - core.booking_service - INFO - Checking availability: LT1 on 2025-11-24 08:00-09:00
+2025-11-23 09:36:53 - core.booking_service - INFO - Generated 3 recommendations
+2025-11-23 10:13:38 - core.booking_service - INFO - Recommendation engine initialized successfully
+2025-11-23 10:13:38 - core.booking_service - INFO - Checking availability: LT1 on 2025-11-24 08:00-09:00
+2025-11-23 10:13:40 - core.booking_service - INFO - Generated 8 recommendations
+2025-11-23 11:14:19 - core.booking_service - INFO - Recommendation engine initialized successfully
+2025-11-23 11:14:19 - core.booking_service - INFO - Checking availability: LT1 on 2025-11-24 08:00-09:00
+2025-11-23 11:14:19 - core.booking_service - INFO - Generated 8 recommendations
+2025-11-23 11:35:57 - core.booking_service - INFO - Recommendation engine initialized successfully
+2025-11-23 11:35:57 - core.booking_service - INFO - Checking availability: LT1 on 2025-11-24 08:00-09:00
+2025-11-23 11:35:57 - core.booking_service - INFO - Generated 8 recommendations
+2025-11-23 11:40:23 - core.booking_service - INFO - Recommendation engine initialized successfully
+2025-11-23 11:40:23 - core.booking_service - INFO - Checking availability: LT1 on 2025-11-24 08:00-09:00
+2025-11-23 11:40:23 - core.booking_service - INFO - Generated 8 recommendations
+2025-11-23 11:57:41 - core.booking_service - INFO - Recommendation engine initialized successfully
+2025-11-23 11:57:41 - core.booking_service - INFO - Checking availability: LT1 on 2025-11-24 08:00-09:00
+2025-11-23 11:57:41 - core.booking_service - INFO - Generated 8 recommendations
+2025-11-23 12:04:08 - core.booking_service - INFO - Recommendation engine initialized successfully
+2025-11-23 18:46:55 - api.routes.chat_routes - ERROR - LLM parsing failed: Expecting value: line 1 column 1 (char 0)
+2025-11-23 19:17:09 - api.routes.chat_routes - ERROR - LLM parsing failed: Expecting value: line 1 column 1 (char 0)
+2025-11-23 19:37:35 - services.llm.deepseek_llm - ERROR - DeepSeek API request failed: 429 Client Error: Too Many Requests for url: https://openrouter.ai/api/v1/chat/completions
+2025-11-23 19:37:35 - core.recurrence_service - ERROR - LLM call failed: Failed to call DeepSeek API: 429 Client Error: Too Many Requests for url: https://openrouter.ai/api/v1/chat/completions
+2025-11-23 19:37:37 - services.llm.deepseek_llm - ERROR - DeepSeek API request failed: 429 Client Error: Too Many Requests for url: https://openrouter.ai/api/v1/chat/completions
+2025-11-23 19:37:37 - api.routes.chat_routes - ERROR - LLM parsing failed: Failed to call DeepSeek API: 429 Client Error: Too Many Requests for url: https://openrouter.ai/api/v1/chat/completions
+2025-11-23 19:41:44 - services.llm.deepseek_llm - ERROR - DeepSeek API request failed: 429 Client Error: Too Many Requests for url: https://openrouter.ai/api/v1/chat/completions
+2025-11-23 19:41:44 - core.recurrence_service - ERROR - LLM call failed: Failed to call DeepSeek API: 429 Client Error: Too Many Requests for url: https://openrouter.ai/api/v1/chat/completions
+2025-11-23 19:41:46 - services.llm.deepseek_llm - ERROR - DeepSeek API request failed: 429 Client Error: Too Many Requests for url: https://openrouter.ai/api/v1/chat/completions
+2025-11-23 19:41:46 - api.routes.chat_routes - ERROR - LLM parsing failed: Failed to call DeepSeek API: 429 Client Error: Too Many Requests for url: https://openrouter.ai/api/v1/chat/completions
